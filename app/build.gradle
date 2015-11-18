@@ -1,0 +1,70 @@
+plugins {
+    id 'java' // Must be explicitly applied
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '1.2.2'
+}
+
+description = 'Video game'
+version = '1.0'
+
+mainClassName = 'net.seabears.game.Example'
+sourceCompatibility = 1.8
+
+import org.apache.tools.ant.taskdefs.condition.Os
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    applicationDefaultJvmArgs = ["-Djava.library.path=$buildDir/natives/windows"]
+} else if (Os.isFamily(Os.FAMILY_MAC)) {
+    applicationDefaultJvmArgs = ["-Djava.library.path=$buildDir/natives/osx"]
+} else {
+    applicationDefaultJvmArgs = ["-Djava.library.path=$buildDir/natives/linux"]
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Game',
+                   'Implementation-Version': version
+    }
+}
+
+shadowJar {
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://mavennatives.googlecode.com/svn/repo"
+    }
+}
+
+dependencies {
+    compile 'org.lwjgl.lwjgl:lwjgl:2.9.3'
+    compile 'org.slick2d:slick2d-core:1.0.1'
+    compile 'java3d:vecmath:1.3.1'
+    testCompile 'junit:junit:4.+'
+}
+
+task natives {
+    description "Copies native libraries to an appropriate directory."
+}
+
+['windows', 'linux', 'osx'].each { platform ->
+    def task = task "${platform}Natives" {
+        def outputDir = "$buildDir/natives/$platform"
+        inputs.files(configurations.compile)
+        outputs.dir(outputDir)
+        doLast {
+            copy {
+                def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts.findAll { it.classifier == "natives-$platform" }
+                artifacts.each {
+                     from zipTree(it.file)
+                }
+                into outputDir
+            }
+        }
+    }
+    natives.dependsOn task
+}
+
