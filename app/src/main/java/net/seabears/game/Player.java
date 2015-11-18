@@ -3,6 +3,7 @@ package net.seabears.game;
 public class Player {
     private final int size;
     private int x, y;
+    private double vx, vy;
 
     public Player(int size) {
         this(size, 0, 0);
@@ -12,6 +13,8 @@ public class Player {
         this.size = size;
         this.x = x;
         this.y = y;
+        this.vx = 0;
+        this.vy = 0;
     }
 
     public int getX() {
@@ -32,5 +35,21 @@ public class Player {
 
     public int getSize() {
         return size;
+    }
+
+    public double getVx() {
+        return vx;
+    }
+
+    public void setVx(double vx) {
+        this.vx = vx;
+    }
+
+    public double getVy() {
+        return vy;
+    }
+
+    public void setVy(double vy) {
+        this.vy = vy;
     }
 }
