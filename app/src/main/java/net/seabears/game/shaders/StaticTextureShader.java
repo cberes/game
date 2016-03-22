@@ -12,10 +12,14 @@ public class StaticTextureShader extends ShaderProgram {
   public static final int ATTR_POSITION = 0;
   public static final int ATTR_TEXTURE = 1;
   public static final int ATTR_NORMAL = 2;
+  public static final int ATTR_REFLECTIVITY = 3;
+  public static final int ATTR_SHINE_DAMPER = 4;
 
   private int locationLightColor;
   private int locationLightPosition;
   private int locationProjectionMatrix;
+  private int locationReflectivity;
+  private int locationShineDamper;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
 
@@ -35,6 +39,8 @@ public class StaticTextureShader extends ShaderProgram {
     locationLightColor = super.getUniformLocation("lightColor");
     locationLightPosition = super.getUniformLocation("lightPosition");
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
+    locationReflectivity = super.getUniformLocation("reflectivity");
+    locationShineDamper = super.getUniformLocation("shineDamper");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
   }
@@ -46,6 +52,11 @@ public class StaticTextureShader extends ShaderProgram {
 
   public void loadProjectionMatrix(Matrix4f matrix) {
     super.loadMatrix(locationProjectionMatrix, matrix);
+  }
+
+  public void loadShine(float reflectivity, float shineDamper) {
+    super.loadFloat(locationReflectivity, reflectivity);
+    super.loadFloat(locationShineDamper, shineDamper);
   }
 
   public void loadTransformationMatrix(Entity entity) {

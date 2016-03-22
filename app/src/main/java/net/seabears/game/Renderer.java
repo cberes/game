@@ -39,6 +39,8 @@ public class Renderer {
     GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
     GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
     shader.loadTransformationMatrix(entity);
+    shader.loadShine(entity.getModel().getTexture().getReflectivity(),
+                     entity.getModel().getTexture().getShineDamper());
     GL13.glActiveTexture(GL13.GL_TEXTURE0);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
     GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);

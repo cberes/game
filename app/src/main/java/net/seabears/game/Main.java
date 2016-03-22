@@ -144,7 +144,7 @@ public class Main {
         final Camera camera = new Camera();
         final Renderer renderer = new Renderer(display.getWidth(), display.getHeight(), (StaticTextureShader) shader);
         RawModel model = ObjLoader.loadObjModel("stall", loader);
-        final ModelTexture texture = new ModelTexture(loader.loadTexture("stall"));
+        final ModelTexture texture = new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f);
         final TexturedModel texturedModel = new TexturedModel(model, texture);
         final Entity entity = new Entity(texturedModel,
                 new Vector3f(0.0f, -5.0f, -20.0f),
