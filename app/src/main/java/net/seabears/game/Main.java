@@ -29,12 +29,11 @@ public class Main {
 
     public void run() {
       final Loader loader = new Loader();
-      final Renderer renderer = new Renderer();
       ShaderProgram shader = null;
         try (DisplayManager display = new DisplayManager("Hello World!", 800, 600)) {
           init(display);
           shader = new StaticTextureShader();
-          loop(display, loader, renderer, shader);
+          loop(display, loader, shader);
         } finally {
           if (shader != null) {
             shader.close();
@@ -111,7 +110,7 @@ public class Main {
         display.init();
     }
 
-    private void loop(final DisplayManager display, final Loader loader, final Renderer renderer, final ShaderProgram shader) {
+    private void loop(final DisplayManager display, final Loader loader, final ShaderProgram shader) {
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         final float[] vertices = {
@@ -125,6 +124,7 @@ public class Main {
             0, 1,
             1, 1,
             1, 0};
+        final Renderer renderer = new Renderer(display.getWidth(), display.getHeight(), (StaticTextureShader) shader);
         //RawModel model = loader.loadToVao(vertices, indices);
         ModelTexture texture = new ModelTexture(loader.loadTexture("winnie"));
         TexturedModel texturedModel = new TexturedModel(loader.loadToVao(vertices, textureCoords, indices), texture);
@@ -133,7 +133,7 @@ public class Main {
         while (display.isRunning()) {
             renderer.prepare();
             shader.start();
-            entity.increasePosition(new Vector3f(0.0f, 0.0f, 0.002f));
+            //entity.increasePosition(new Vector3f(0.0f, 0.0f, -0.1f));
             //entity.increaseRotation(new Vector3f(0.0f, 1.0f, 0.0f));
             renderer.render(entity, (StaticTextureShader) shader);
             //renderer.render(texturedModel);

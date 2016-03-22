@@ -186,6 +186,14 @@ public class DisplayManager implements AutoCloseable {
         glEnable(GL_DEPTH_TEST);
     }
 
+    public int getWidth() {
+      return width;
+    }
+
+    public int getHeight() {
+      return height;
+    }
+
     public boolean isRunning() {
         return glfwWindowShouldClose(window) == GL_FALSE;
     }

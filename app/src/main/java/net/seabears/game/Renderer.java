@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -16,6 +17,35 @@ import net.seabears.game.shaders.StaticTextureShader;
 import net.seabears.game.util.TransformationMatrix;
 
 public class Renderer {
+  private static Matrix4f createProjectionMatrix(int w, int h) {
+    final float aspectRatio = (float) w / (float) h;
+    final float yScale = (float) (1f / Math.tan(Math.toRadians(FOV / 2f))) * aspectRatio;
+    final float xScale = yScale / aspectRatio;
+    final float frustrumLength = FAR_PLANE - NEAR_PLANE;
+
+    final Matrix4f matrix = new Matrix4f();
+    matrix.m00 = xScale;
+    matrix.m11 = yScale;
+    matrix.m22 = -((FAR_PLANE + NEAR_PLANE) / frustrumLength);
+    matrix.m23 = -1;
+    matrix.m32 = -((2 * NEAR_PLANE * FAR_PLANE) / frustrumLength);
+    matrix.m33 = 0;
+    return matrix;
+  }
+
+  private static final float FOV = 70f;
+  private static final float NEAR_PLANE = 0.1f;
+  private static final float FAR_PLANE = 1000f;
+
+  private final Matrix4f projectionMatrix;
+
+  public Renderer(int w, int h, StaticTextureShader shader) {
+    projectionMatrix = createProjectionMatrix(w, h);
+    shader.start();
+    shader.loadProjectionMatrix(projectionMatrix);
+    shader.stop();
+  }
+
   public void prepare() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
