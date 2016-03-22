@@ -1,0 +1,12 @@
+#version 130
+
+in vec3 position;
+
+out vec3 color;
+
+void main(void) {
+	// convert vec3 to vec4
+	gl_Position = vec4(position, 1.0);
+	// vertices range from -0.5 to 0.5, so add 0.5 to avoid negative values
+	color = vec3(position.x + 0.5, 1.0, position.y + 0.5);
+}

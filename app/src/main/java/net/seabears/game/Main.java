@@ -6,8 +6,15 @@ import static org.lwjgl.opengl.GL11.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
+
+import net.seabears.game.entities.Entity;
+import net.seabears.game.models.TexturedModel;
+import net.seabears.game.shaders.ShaderProgram;
+import net.seabears.game.shaders.StaticTextureShader;
+import net.seabears.game.textures.ModelTexture;
 
 /**
  * Copied from http://wiki.lwjgl.org/wiki/LWJGL_Basics_3_(The_Quad) Physics info:
@@ -21,13 +28,18 @@ public class Main {
     private final AtomicBoolean c = new AtomicBoolean(false);
 
     public void run() {
-        final Loader loader = new Loader();
-        final Renderer renderer = new Renderer();
+      final Loader loader = new Loader();
+      final Renderer renderer = new Renderer();
+      ShaderProgram shader = null;
         try (DisplayManager display = new DisplayManager("Hello World!", 800, 600)) {
-            init(display);
-            loop(display, loader, renderer);
+          init(display);
+          shader = new StaticTextureShader();
+          loop(display, loader, renderer, shader);
         } finally {
-            loader.close();
+          if (shader != null) {
+            shader.close();
+          }
+          loader.close();
         }
     }
 
@@ -99,21 +111,33 @@ public class Main {
         display.init();
     }
 
-    private void loop(final DisplayManager display, final Loader loader, final Renderer renderer) {
+    private void loop(final DisplayManager display, final Loader loader, final Renderer renderer, final ShaderProgram shader) {
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         final float[] vertices = {
-                -0.5f, 0.5f, 0f,
-                -0.5f, -0.5f, 0f,
-                0.5f, -0.5f, 0f,
-                0.5f, -0.5f, 0f,
-                0.5f, 0.5f, 0f,
-                -0.5f, 0.5f, 0f};
-        RawModel model = loader.loadToVao(vertices);
+                -0.5f, 0.5f, 0.0f,
+                -0.5f, -0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f,
+                0.5f, 0.5f, 0.0f};
+        final int[] indices = new int[] {0, 1, 3, 3, 1, 2};
+        final float[] textureCoords = {
+            0, 0,
+            0, 1,
+            1, 1,
+            1, 0};
+        //RawModel model = loader.loadToVao(vertices, indices);
+        ModelTexture texture = new ModelTexture(loader.loadTexture("winnie"));
+        TexturedModel texturedModel = new TexturedModel(loader.loadToVao(vertices, textureCoords, indices), texture);
+        Entity entity = new Entity(texturedModel, new Vector3f(0.0f, 0.0f, 0.0f), new Vector3f(0.0f, 0.0f, 0.0f), 1.0f); 
         long t = System.nanoTime();
         while (display.isRunning()) {
             renderer.prepare();
-            renderer.render(model);
+            shader.start();
+            entity.increasePosition(new Vector3f(0.0f, 0.0f, 0.002f));
+            //entity.increaseRotation(new Vector3f(0.0f, 1.0f, 0.0f));
+            renderer.render(entity, (StaticTextureShader) shader);
+            //renderer.render(texturedModel);
+            shader.stop();
 
             // set the color of the quad (R,G,B,A)
             if (c.get()) {
