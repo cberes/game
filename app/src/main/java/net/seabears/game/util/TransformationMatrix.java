@@ -9,7 +9,7 @@ public class TransformationMatrix {
   public TransformationMatrix(Vector3f translation, Vector3f rotation, float scale) {
     this.matrix = new Matrix4f();
     this.matrix.identity();
-    this.matrix.translation(translation);
+    this.matrix.translate(translation);
     this.matrix.rotate((float) Math.toRadians(rotation.x), new Vector3f(1.0f, 0.0f, 0.0f));
     this.matrix.rotate((float) Math.toRadians(rotation.y), new Vector3f(0.0f, 1.0f, 0.0f));
     this.matrix.rotate((float) Math.toRadians(rotation.z), new Vector3f(0.0f, 0.0f, 1.0f));

@@ -115,27 +115,28 @@ public class DisplayManager implements AutoCloseable {
      * @param framebufferHeight The height of the new framebuffer
      */
     public void onResize(int framebufferWidth, int framebufferHeight) {
-        framebuffer.width = framebufferWidth;
-        framebuffer.height = framebufferHeight;
-        float aspectRatio = (float) framebufferHeight / framebufferWidth;
-        float desiredAspectRatio = height / width;
-        projection.left = 0;
-        projection.right = width;
-        projection.bottom = 0;
-        projection.top = height;
-        if (aspectRatio == desiredAspectRatio) {
-        } else if (aspectRatio > desiredAspectRatio) {
-            float newScreenHeight = width * aspectRatio;
-            projection.bottom = -(newScreenHeight - height) / 2f;
-            projection.top = newScreenHeight + projection.bottom;
-        } else if (aspectRatio < desiredAspectRatio) {
-            float newScreenWidth = height / aspectRatio;
-            projection.left = -(newScreenWidth - width) / 2f;
-            projection.right = newScreenWidth + projection.left;
-        }
+//        framebuffer.width = framebufferWidth;
+//        framebuffer.height = framebufferHeight;
+//        float aspectRatio = (float) framebufferHeight / framebufferWidth;
+//        float desiredAspectRatio = height / width;
+//        projection.left = 0;
+//        projection.right = width;
+//        projection.bottom = 0;
+//        projection.top = height;
+//        if (aspectRatio == desiredAspectRatio) {
+//        } else if (aspectRatio > desiredAspectRatio) {
+//            float newScreenHeight = width * aspectRatio;
+//            projection.bottom = -(newScreenHeight - height) / 2f;
+//            projection.top = newScreenHeight + projection.bottom;
+//        } else if (aspectRatio < desiredAspectRatio) {
+//            float newScreenWidth = height / aspectRatio;
+//            projection.left = -(newScreenWidth - width) / 2f;
+//            projection.right = newScreenWidth + projection.left;
+//        }
         glMatrixMode(GL_PROJECTION);
-        setOrtho2D(projectionMatrix, projection);
-        glLoadMatrixf(projectionMatrix);
+//        setOrtho2D(projectionMatrix, projection);
+//        glLoadMatrixf(projectionMatrix);
+        glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glViewport(0, 0, framebufferWidth, framebufferHeight);
@@ -183,7 +184,7 @@ public class DisplayManager implements AutoCloseable {
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-        glEnable(GL_DEPTH_TEST);
+        // TODO glEnable(GL_DEPTH_TEST);
     }
 
     public int getWidth() {

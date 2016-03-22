@@ -50,7 +50,7 @@ public abstract class ShaderProgram implements AutoCloseable {
     this.bindAttributes();
     GL20.glLinkProgram(this.programId);
     GL20.glValidateProgram(this.programId);
-//    final int n  = GL20.glGetProgrami(this.programId, GL20.GL_ACTIVE_UNIFORMS);
+//    final int n = GL20.glGetProgrami(this.programId, GL20.GL_ACTIVE_UNIFORMS);
 //    System.err.println(n);
 //    for (int i = 0; i < n; ++i) {
 //      final java.nio.IntBuffer buf1 = BufferUtils.createIntBuffer(1);
@@ -105,8 +105,6 @@ public abstract class ShaderProgram implements AutoCloseable {
   }
 
   protected void loadMatrix(int location, Matrix4f value) {
-    matrixBuffer.clear();
-    value.get(matrixBuffer);
-    GL20.glUniformMatrix4fv(0, false, matrixBuffer);
+    GL20.glUniformMatrix4fv(location, false, value.get(matrixBuffer));
   }
 }
