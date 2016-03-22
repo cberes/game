@@ -12,6 +12,7 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
+import net.seabears.game.entities.Light;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.models.TexturedModel;
@@ -35,10 +36,11 @@ public class Main {
       final Loader loader = new Loader();
       ShaderProgram shader = null;
       final DirectionKeys dirKeys = new DirectionKeys();
+      final MovementKeys movKeys = new MovementKeys();
         try (DisplayManager display = new DisplayManager("Hello World!", 800, 600)) {
-          init(display, dirKeys, new MovementKeys());
+          init(display, dirKeys, movKeys);
           shader = new StaticTextureShader();
-          loop(display, loader, shader, dirKeys);
+          loop(display, loader, shader, dirKeys, movKeys);
         } finally {
           if (shader != null) {
             shader.close();
@@ -64,7 +66,7 @@ public class Main {
         return move;
     }
 
-    private void loop(final DisplayManager display, final Loader loader, final ShaderProgram shader, final DirectionKeys dir) {
+    private void loop(final DisplayManager display, final Loader loader, final ShaderProgram shader, final DirectionKeys dir, final MovementKeys mov) {
         float[] vertices = {
                 -0.5f,0.5f,-0.5f,
                 -0.5f,-0.5f,-0.5f,
@@ -148,16 +150,22 @@ public class Main {
                 new Vector3f(0.0f, -5.0f, -20.0f),
                 new Vector3f(0.0f, 0.0f, 0.0f),
                 1.0f);
+        final Light light = new Light(new Vector3f(0.0f, 5.0f, -10.0f), new Vector3f(1.0f, 1.0f, 1.0f));
 
         long t = System.nanoTime();
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (display.isRunning()) {
+            if (mov.forward.get()) {
+                light.toggle();
+            }
+
             camera.move(cameraMovement(dir));
             entity.increaseRotation(new Vector3f(0.0f, 1.0f, 0.0f));
             renderer.prepare();
             shader.start();
+            ((StaticTextureShader) shader).loadLight(light);
             ((StaticTextureShader) shader).loadViewMatrix(camera);
             renderer.render(entity, (StaticTextureShader) shader);
             //renderer.render(texturedModel);

@@ -1,19 +1,23 @@
 #version 130
 
+uniform vec3 lightPosition;
 uniform mat4 projectionMatrix;
 uniform mat4 transformationMatrix;
 uniform mat4 viewMatrix;
 
 in vec3 position;
 in vec2 textureCoords;
+in vec3 normal;
 
-out vec3 color;
 out vec2 pass_textureCoords;
+out vec3 surfaceNormal;
+out vec3 toLightVector;
 
 void main(void) {
 	// convert vec3 to vec4
-	gl_Position = projectionMatrix * viewMatrix * transformationMatrix * vec4(position, 1.0);
+	vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
+	gl_Position = projectionMatrix * viewMatrix * worldPosition;
 	pass_textureCoords = textureCoords;
-	// vertices range from -0.5 to 0.5, so add 0.5 to avoid negative values
-	color = vec3(position.x + 0.5, 1.0, position.y + 0.5);
+	surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
+	toLightVector = lightPosition - worldPosition.xyz;
 }

@@ -4,10 +4,17 @@ import org.joml.Matrix4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
+import net.seabears.game.entities.Light;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
 public class StaticTextureShader extends ShaderProgram {
+  public static final int ATTR_POSITION = 0;
+  public static final int ATTR_TEXTURE = 1;
+  public static final int ATTR_NORMAL = 2;
+
+  private int locationLightColor;
+  private int locationLightPosition;
   private int locationProjectionMatrix;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
@@ -18,17 +25,23 @@ public class StaticTextureShader extends ShaderProgram {
 
   @Override
   protected void bindAttributes() {
-    // use attribute 0 of the VAO because that's where we stored our vertex positions
-    super.bindAttribute(0, "position");
-    // use attribute 1 of the VAO because that's where we stored our texture coords
-    super.bindAttribute(1, "textureCoords");
+    super.bindAttribute(ATTR_POSITION, "position");
+    super.bindAttribute(ATTR_TEXTURE, "textureCoords");
+    super.bindAttribute(ATTR_NORMAL, "normal");
   }
 
   @Override
   protected void getAllUniformLocations() {
+    locationLightColor = super.getUniformLocation("lightColor");
+    locationLightPosition = super.getUniformLocation("lightPosition");
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
+  }
+
+  public void loadLight(Light light) {
+    super.loadFloat(locationLightColor, light.getColor());
+    super.loadFloat(locationLightPosition, light.getPosition());
   }
 
   public void loadProjectionMatrix(Matrix4f matrix) {

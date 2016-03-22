@@ -35,36 +35,40 @@ public class Renderer {
     final TexturedModel tmodel = entity.getModel();
     final RawModel model = tmodel.getRawModel();
     GL30.glBindVertexArray(model.getVaoId());
-    GL20.glEnableVertexAttribArray(0);
-    GL20.glEnableVertexAttribArray(1);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
     shader.loadTransformationMatrix(entity);
     GL13.glActiveTexture(GL13.GL_TEXTURE0);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
     GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-    GL20.glDisableVertexAttribArray(0);
-    GL20.glDisableVertexAttribArray(1);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
     GL30.glBindVertexArray(0);
   }
 
   public void render(TexturedModel tmodel) {
     final RawModel model = tmodel.getRawModel();
     GL30.glBindVertexArray(model.getVaoId());
-    GL20.glEnableVertexAttribArray(0);
-    GL20.glEnableVertexAttribArray(1);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
     GL13.glActiveTexture(GL13.GL_TEXTURE0);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
     GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-    GL20.glDisableVertexAttribArray(0);
-    GL20.glDisableVertexAttribArray(1);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
     GL30.glBindVertexArray(0);
   }
 
   public void render(RawModel model) {
     GL30.glBindVertexArray(model.getVaoId());
-    GL20.glEnableVertexAttribArray(0);
+    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
     GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, model.getVertexCount());
     GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-    GL20.glDisableVertexAttribArray(0);
+    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
     GL30.glBindVertexArray(0);
   }
 }
