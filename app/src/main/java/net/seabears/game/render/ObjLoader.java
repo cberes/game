@@ -1,4 +1,4 @@
-package net.seabears.game.util;
+package net.seabears.game.render;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,8 +10,7 @@ import java.util.List;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import net.seabears.game.Loader;
-import net.seabears.game.RawModel;
+import net.seabears.game.models.RawModel;
 
 public final class ObjLoader {
   public static RawModel loadObjModel(String filename, Loader loader) {

@@ -15,11 +15,16 @@ import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MovementKeys;
+import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
+import net.seabears.game.render.DisplayManager;
+import net.seabears.game.render.Loader;
+import net.seabears.game.render.MasterRenderer;
+import net.seabears.game.render.ObjLoader;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.shaders.StaticTextureShader;
 import net.seabears.game.textures.ModelTexture;
-import net.seabears.game.util.ObjLoader;
 
 /**
  * Copied from http://wiki.lwjgl.org/wiki/LWJGL_Basics_3_(The_Quad) Physics info:
@@ -67,90 +72,22 @@ public class Main {
     }
 
     private void loop(final DisplayManager display, final Loader loader, final ShaderProgram shader, final DirectionKeys dir, final MovementKeys mov) {
-        float[] vertices = {
-                -0.5f,0.5f,-0.5f,
-                -0.5f,-0.5f,-0.5f,
-                0.5f,-0.5f,-0.5f,
-                0.5f,0.5f,-0.5f,
-
-                -0.5f,0.5f,0.5f,
-                -0.5f,-0.5f,0.5f,
-                0.5f,-0.5f,0.5f,
-                0.5f,0.5f,0.5f,
-
-                0.5f,0.5f,-0.5f,
-                0.5f,-0.5f,-0.5f,
-                0.5f,-0.5f,0.5f,
-                0.5f,0.5f,0.5f,
-
-                -0.5f,0.5f,-0.5f,
-                -0.5f,-0.5f,-0.5f,
-                -0.5f,-0.5f,0.5f,
-                -0.5f,0.5f,0.5f,
-
-                -0.5f,0.5f,0.5f,
-                -0.5f,0.5f,-0.5f,
-                0.5f,0.5f,-0.5f,
-                0.5f,0.5f,0.5f,
-
-                -0.5f,-0.5f,0.5f,
-                -0.5f,-0.5f,-0.5f,
-                0.5f,-0.5f,-0.5f,
-                0.5f,-0.5f,0.5f
-        };
-
-        float[] textureCoords = {
-                0,0,
-                0,1,
-                1,1,
-                1,0,
-                0,0,
-                0,1,
-                1,1,
-                1,0,
-                0,0,
-                0,1,
-                1,1,
-                1,0,
-                0,0,
-                0,1,
-                1,1,
-                1,0,
-                0,0,
-                0,1,
-                1,1,
-                1,0,
-                0,0,
-                0,1,
-                1,1,
-                1,0
-        };
-
-        int[] indices = {
-                0,1,3,
-                3,1,2,
-                4,5,7,
-                7,5,6,
-                8,9,11,
-                11,9,10,
-                12,13,15,
-                15,13,14,
-                16,17,19,
-                19,17,18,
-                20,21,23,
-                23,21,22
-        };
-
+        // lights, camera, ...
+        final Light light = new Light(new Vector3f(0.0f, 5.0f, -10.0f), new Vector3f(1.0f, 1.0f, 1.0f));
         final Camera camera = new Camera();
+
+        // rendering
         final Renderer renderer = new Renderer(display.getWidth(), display.getHeight(), (StaticTextureShader) shader);
-        RawModel model = ObjLoader.loadObjModel("stall", loader);
+        final MasterRenderer master = new MasterRenderer((StaticTextureShader) shader, renderer);
+
+        // models and entities
+        final RawModel model = ObjLoader.loadObjModel("stall", loader);
         final ModelTexture texture = new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f);
         final TexturedModel texturedModel = new TexturedModel(model, texture);
         final Entity entity = new Entity(texturedModel,
                 new Vector3f(0.0f, -5.0f, -20.0f),
                 new Vector3f(0.0f, 0.0f, 0.0f),
                 1.0f);
-        final Light light = new Light(new Vector3f(0.0f, 5.0f, -10.0f), new Vector3f(1.0f, 1.0f, 1.0f));
 
         long t = System.nanoTime();
 
@@ -163,13 +100,8 @@ public class Main {
 
             camera.move(cameraMovement(dir));
             entity.increaseRotation(new Vector3f(0.0f, 1.0f, 0.0f));
-            renderer.prepare();
-            shader.start();
-            ((StaticTextureShader) shader).loadLight(light);
-            ((StaticTextureShader) shader).loadViewMatrix(camera);
-            renderer.render(entity, (StaticTextureShader) shader);
-            //renderer.render(texturedModel);
-            shader.stop();
+            master.add(entity);
+            master.render(light, camera);
 
             // set the color of the quad (R,G,B,A)
 //            if (c.get()) {
@@ -224,6 +156,7 @@ public class Main {
 
             display.updateEnd();
         }
+        master.close();
     }
 
     private void init(final DisplayManager display, final DirectionKeys dir, final MovementKeys mov) {

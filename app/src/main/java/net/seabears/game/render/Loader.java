@@ -1,4 +1,4 @@
-package net.seabears.game;
+package net.seabears.game.render;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
+import net.seabears.game.models.RawModel;
 import net.seabears.game.shaders.StaticTextureShader;
 
 public class Loader implements AutoCloseable {
