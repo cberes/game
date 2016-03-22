@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL30;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
-import net.seabears.game.shaders.StaticTextureShader;
+import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.ProjectionMatrix;
 
 public class Renderer {
@@ -21,9 +21,9 @@ public class Renderer {
   private static final float FAR_PLANE = 1000.0f;
 
   private final Matrix4f projectionMatrix;
-  private final StaticTextureShader shader;
+  private final StaticShader shader;
 
-  public Renderer(int w, int h, StaticTextureShader shader) {
+  public Renderer(int w, int h, StaticShader shader) {
     // don't render triangles facing away from the camera
     GL11.glEnable(GL11.GL_CULL_FACE);
     GL11.glCullFace(GL11.GL_BACK);
@@ -46,9 +46,9 @@ public class Renderer {
       final TexturedModel tmodel = entry.getKey();
       final RawModel model = tmodel.getRawModel();
       GL30.glBindVertexArray(model.getVaoId());
-      GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-      GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
-      GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
+      GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
+      GL20.glEnableVertexAttribArray(StaticShader.ATTR_TEXTURE);
+      GL20.glEnableVertexAttribArray(StaticShader.ATTR_NORMAL);
       shader.loadShine(tmodel.getTexture().getReflectivity(), tmodel.getTexture().getShineDamper());
       GL13.glActiveTexture(GL13.GL_TEXTURE0);
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
@@ -56,53 +56,10 @@ public class Renderer {
         shader.loadTransformationMatrix(entity);
         GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
       }
-      GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-      GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
-      GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
+      GL20.glDisableVertexAttribArray(StaticShader.ATTR_POSITION);
+      GL20.glDisableVertexAttribArray(StaticShader.ATTR_TEXTURE);
+      GL20.glDisableVertexAttribArray(StaticShader.ATTR_NORMAL);
       GL30.glBindVertexArray(0);
     }
-  }
-
-  public void render(Entity entity, StaticTextureShader shader) {
-    final TexturedModel tmodel = entity.getModel();
-    final RawModel model = tmodel.getRawModel();
-    GL30.glBindVertexArray(model.getVaoId());
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
-    shader.loadTransformationMatrix(entity);
-    shader.loadShine(entity.getModel().getTexture().getReflectivity(),
-                     entity.getModel().getTexture().getShineDamper());
-    GL13.glActiveTexture(GL13.GL_TEXTURE0);
-    GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
-    GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
-    GL30.glBindVertexArray(0);
-  }
-
-  public void render(TexturedModel tmodel) {
-    final RawModel model = tmodel.getRawModel();
-    GL30.glBindVertexArray(model.getVaoId());
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
-    GL13.glActiveTexture(GL13.GL_TEXTURE0);
-    GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
-    GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_TEXTURE);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_NORMAL);
-    GL30.glBindVertexArray(0);
-  }
-
-  public void render(RawModel model) {
-    GL30.glBindVertexArray(model.getVaoId());
-    GL20.glEnableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-    GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, model.getVertexCount());
-    GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-    GL20.glDisableVertexAttribArray(StaticTextureShader.ATTR_POSITION);
-    GL30.glBindVertexArray(0);
   }
 }

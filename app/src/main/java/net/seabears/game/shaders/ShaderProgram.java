@@ -33,7 +33,7 @@ public abstract class ShaderProgram implements AutoCloseable {
       System.err.println("Could not read shader");
       e.printStackTrace();
       System.exit(2);
-      return null;
+      return null; // dumb
     }
   }
 
@@ -50,15 +50,6 @@ public abstract class ShaderProgram implements AutoCloseable {
     this.bindAttributes();
     GL20.glLinkProgram(this.programId);
     GL20.glValidateProgram(this.programId);
-//    final int n = GL20.glGetProgrami(this.programId, GL20.GL_ACTIVE_UNIFORMS);
-//    System.err.println(n);
-//    for (int i = 0; i < n; ++i) {
-//      final java.nio.IntBuffer buf1 = BufferUtils.createIntBuffer(1);
-//      final java.nio.IntBuffer buf2 = BufferUtils.createIntBuffer(1);
-//      final String name = GL20.glGetActiveUniform(programId, i, buf1, buf2);
-//      final int loc = GL20.glGetUniformLocation(programId, name);
-//      System.err.println(name + " " + loc + " " + buf1.get(0) + " " + buf2.get(0));
-//    }
     this.getAllUniformLocations();
   }
 
