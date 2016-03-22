@@ -18,6 +18,7 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.shaders.StaticTextureShader;
 import net.seabears.game.textures.ModelTexture;
+import net.seabears.game.util.ObjLoader;
 
 /**
  * Copied from http://wiki.lwjgl.org/wiki/LWJGL_Basics_3_(The_Quad) Physics info:
@@ -140,11 +141,11 @@ public class Main {
 
         final Camera camera = new Camera();
         final Renderer renderer = new Renderer(display.getWidth(), display.getHeight(), (StaticTextureShader) shader);
-        //RawModel model = loader.loadToVao(vertices, indices);
-        final ModelTexture texture = new ModelTexture(loader.loadTexture("winnie"));
-        final TexturedModel texturedModel = new TexturedModel(loader.loadToVao(vertices, textureCoords, indices), texture);
+        RawModel model = ObjLoader.loadObjModel("stall", loader);
+        final ModelTexture texture = new ModelTexture(loader.loadTexture("stall"));
+        final TexturedModel texturedModel = new TexturedModel(model, texture);
         final Entity entity = new Entity(texturedModel,
-                new Vector3f(0.0f, 0.0f, -5.0f),
+                new Vector3f(0.0f, -5.0f, -20.0f),
                 new Vector3f(0.0f, 0.0f, 0.0f),
                 1.0f);
 
@@ -154,7 +155,7 @@ public class Main {
         // the window or has pressed the ESCAPE key.
         while (display.isRunning()) {
             camera.move(cameraMovement(dir));
-            entity.increaseRotation(new Vector3f(1.0f, 1.0f, 0.0f));
+            entity.increaseRotation(new Vector3f(0.0f, 1.0f, 0.0f));
             renderer.prepare();
             shader.start();
             ((StaticTextureShader) shader).loadViewMatrix(camera);
