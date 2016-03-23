@@ -207,9 +207,7 @@ public class Main {
         if (key == GLFW_KEY_A) {
           mov.left.set(active);
         }
-        if (key == GLFW_KEY_SPACE) {
-          mov.jump.set(action == GLFW_PRESS);
-        }
+        mov.jump.set(key == GLFW_KEY_SPACE && action == GLFW_PRESS);
       }
     });
 
