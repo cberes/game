@@ -14,6 +14,7 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
+import net.seabears.game.entities.Player;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.models.TexturedModel;
@@ -28,6 +29,7 @@ import net.seabears.game.terrains.Terrain;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
+import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 
@@ -56,18 +58,18 @@ public class Main {
     final float mag = 0.1f;
     final Vector3f move = new Vector3f();
     final Vector3f rotate = new Vector3f();
-    if (mov.forward.get()) {
-      move.add(0.0f, 0.0f, -mag);
-    }
-    if (mov.backward.get()) {
-      move.add(0.0f, 0.0f, mag);
-    }
-    if (mov.right.get()) {
-      move.add(mag, 0.0f, 0.0f);
-    }
-    if (mov.left.get()) {
-      move.add(-mag, 0.0f, 0.0f);
-    }
+//    if (mov.forward.get()) {
+//      move.add(0.0f, 0.0f, -mag);
+//    }
+//    if (mov.backward.get()) {
+//      move.add(0.0f, 0.0f, mag);
+//    }
+//    if (mov.right.get()) {
+//      move.add(mag, 0.0f, 0.0f);
+//    }
+//    if (mov.left.get()) {
+//      move.add(-mag, 0.0f, 0.0f);
+//    }
     if (dir.up.get()) {
       move.add(0.0f, mag, 0.0f);
     }
@@ -85,6 +87,8 @@ public class Main {
   }
 
   private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov) {
+    final FpsCalc fps = new FpsCalc();
+
     /*
      * lights, camera, ...
      */
@@ -115,9 +119,16 @@ public class Main {
         new ModelTexture(loader.loadTexture("fern"), true, true));
 
     /*
+     * player
+     */
+    final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
+    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 1.0f, fps, 20.0f, 160.0f, 30.0f, -50.0f);
+
+    /*
      * entities
      */
     final List<Entity> entities = new ArrayList<>();
+    entities.add(player);
     entities.add(new Entity(stall, new Vector3f(0.0f, 0.0f, -50.0f), new Vector3f(0.0f, 180.0f, 0.0f), 1.0f));
     final Random rand = new Random();
     for (int i = 0; i < 500; ++i) {
@@ -141,7 +152,9 @@ public class Main {
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
     while (display.isRunning()) {
+      fps.update();
       moveCamera(camera, dir, mov);
+      player.move(mov, 0.0f);
       entities.forEach(master::add);
       master.add(terrain1);
       master.add(terrain2);
@@ -193,6 +206,9 @@ public class Main {
         }
         if (key == GLFW_KEY_A) {
           mov.left.set(active);
+        }
+        if (key == GLFW_KEY_SPACE) {
+          mov.jump.set(action == GLFW_PRESS);
         }
       }
     });
