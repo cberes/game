@@ -19,23 +19,18 @@ import org.lwjgl.opengl.GL30;
 import de.matthiasmann.twl.utils.PNGDecoder;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.shaders.StaticShader;
+import net.seabears.game.util.ModelData;
 
 public class Loader implements AutoCloseable {
   private final List<Integer> vaos = new ArrayList<>();
   private final List<Integer> vbos = new ArrayList<>();
   private final List<Integer> textures = new ArrayList<>();
 
-  public RawModel loadToVao(float[] positions, int[] indices) {
-    final int vaoId = createVao();
-    vaos.add(vaoId);
-    bindIndicesBuffer(indices);
-    storeDataInAttributeList(StaticShader.ATTR_POSITION, 3, positions);
-    unbindVao(); // VAO remains bound until here
-    return new RawModel(vaoId, indices.length);
+  public RawModel loadToVao(ModelData data) {
+      return loadToVao(data.getVertices(), data.getTextureCoords(), data.getNormals(), data.getIndices());
   }
 
-  public RawModel loadToVao(float[] positions, float[] textureCoords, float[] normals,
-      int[] indices) {
+  public RawModel loadToVao(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
     final int vaoId = createVao();
     vaos.add(vaoId);
     bindIndicesBuffer(indices);

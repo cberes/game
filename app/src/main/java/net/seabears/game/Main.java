@@ -20,13 +20,13 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
-import net.seabears.game.render.ObjLoader;
 import net.seabears.game.render.TerrainRenderer;
 import net.seabears.game.render.EntityRenderer;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.shaders.TerrainShader;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.textures.ModelTexture;
+import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 
 public class Main {
@@ -103,13 +103,13 @@ public class Main {
     /*
      * models
      */
-    final TexturedModel stall = new TexturedModel(ObjLoader.loadObjModel("stall", loader),
+    final TexturedModel stall = new TexturedModel(loader.loadToVao(ObjFileLoader.load("stall")),
         new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f));
-    final TexturedModel tree = new TexturedModel(ObjLoader.loadObjModel("tree", loader),
+    final TexturedModel tree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("tree")),
         new ModelTexture(loader.loadTexture("tree")));
-    final TexturedModel grass = new TexturedModel(ObjLoader.loadObjModel("grassModel", loader),
+    final TexturedModel grass = new TexturedModel(loader.loadToVao(ObjFileLoader.load("grassModel")),
         new ModelTexture(loader.loadTexture("grassTexture"), true, true));
-    final TexturedModel fern = new TexturedModel(ObjLoader.loadObjModel("fern", loader),
+    final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
         new ModelTexture(loader.loadTexture("fern"), true, true));
 
     /*
