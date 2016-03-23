@@ -19,6 +19,7 @@ public class TerrainShader extends ShaderProgram {
   private int locationProjectionMatrix;
   private int locationReflectivity;
   private int locationShineDamper;
+  private int locationSkyColor;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
 
@@ -41,6 +42,7 @@ public class TerrainShader extends ShaderProgram {
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
+    locationSkyColor = super.getUniformLocation("skyColor");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
   }
@@ -52,6 +54,10 @@ public class TerrainShader extends ShaderProgram {
 
   public void loadProjectionMatrix(Matrix4f matrix) {
     super.loadMatrix(locationProjectionMatrix, matrix);
+  }
+
+  public void loadSky(Vector3f color) {
+    super.loadFloat(locationSkyColor, color);
   }
 
   public void loadTexture(ModelTexture texture) {

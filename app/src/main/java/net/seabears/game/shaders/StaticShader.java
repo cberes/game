@@ -1,6 +1,7 @@
 package net.seabears.game.shaders;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
@@ -22,6 +23,7 @@ public class StaticShader extends ShaderProgram {
   private int locationProjectionMatrix;
   private int locationReflectivity;
   private int locationShineDamper;
+  private int locationSkyColor;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
 
@@ -44,6 +46,7 @@ public class StaticShader extends ShaderProgram {
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
+    locationSkyColor = super.getUniformLocation("skyColor");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
   }
@@ -55,6 +58,10 @@ public class StaticShader extends ShaderProgram {
 
   public void loadProjectionMatrix(Matrix4f matrix) {
     super.loadMatrix(locationProjectionMatrix, matrix);
+  }
+
+  public void loadSky(Vector3f color) {
+    super.loadFloat(locationSkyColor, color);
   }
 
   public void loadTexture(ModelTexture texture) {

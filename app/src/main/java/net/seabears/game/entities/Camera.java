@@ -10,6 +10,12 @@ public class Camera {
         this.position.add(position);
     }
 
+    public void rotate(Vector3f rotation) {
+        this.pitch += rotation.x;
+        this.yaw += rotation.y;
+        this.roll += rotation.z;
+    }
+
     public Vector3f getPosition() {
         return position;
     }

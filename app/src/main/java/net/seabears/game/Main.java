@@ -39,7 +39,7 @@ public class Main {
     final MovementKeys movKeys = new MovementKeys();
     final Loader loader = new Loader();
     MasterRenderer renderer = null;
-    try (DisplayManager display = new DisplayManager("Hello World!", 800, 600)) {
+    try (DisplayManager display = new DisplayManager("Game Engine", 800, 600)) {
       init(display, dirKeys, movKeys);
       renderer = loop(display, loader, dirKeys, movKeys);
     } finally {
@@ -50,22 +50,36 @@ public class Main {
     }
   }
 
-  private static Vector3f cameraMovement(final DirectionKeys dir) {
+  private static void moveCamera(final Camera camera, final DirectionKeys dir, final MovementKeys mov) {
     final float mag = 0.05f;
     final Vector3f move = new Vector3f();
-    if (dir.up.get()) {
+    final Vector3f rotate = new Vector3f();
+    if (mov.forward.get()) {
       move.add(0.0f, 0.0f, -mag);
     }
-    if (dir.down.get()) {
+    if (mov.backward.get()) {
       move.add(0.0f, 0.0f, mag);
     }
-    if (dir.right.get()) {
+    if (mov.right.get()) {
       move.add(mag, 0.0f, 0.0f);
     }
-    if (dir.left.get()) {
+    if (mov.left.get()) {
       move.add(-mag, 0.0f, 0.0f);
     }
-    return move;
+    if (dir.up.get()) {
+      move.add(0.0f, mag, 0.0f);
+    }
+    if (dir.down.get()) {
+      move.add(0.0f, -mag, 0.0f);
+    }
+    if (dir.right.get()) {
+      rotate.add(0.0f, mag * 2.0f, 0.0f);
+    }
+    if (dir.left.get()) {
+      rotate.add(0.0f, -mag * 2.0f, 0.0f);
+    }
+    camera.move(move);
+    camera.rotate(rotate);
   }
 
   private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov) {
@@ -84,7 +98,7 @@ public class Main {
     final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final TerrainShader terrainShader = new TerrainShader();
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
-    final MasterRenderer master = new MasterRenderer(renderer, terrainRenderer);
+    final MasterRenderer master = new MasterRenderer(new Vector3f(0.9f, 0.9f, 1.0f), renderer, terrainRenderer);
 
     /*
      * models
@@ -119,16 +133,13 @@ public class Main {
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
     while (display.isRunning()) {
-      if (mov.forward.get()) {
-        light.toggle();
-      }
-
-      camera.move(cameraMovement(dir));
+      moveCamera(camera, dir, mov);
       entities.forEach(master::add);
       master.add(terrain1);
       master.add(terrain2);
       master.render(light, camera);
 
+      // I don't know if the stuff in here is necessary
       display.update();
     }
     return master;

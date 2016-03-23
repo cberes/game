@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import net.seabears.game.entities.Camera;
@@ -24,12 +25,14 @@ public class MasterRenderer implements AutoCloseable {
     GL11.glDisable(GL11.GL_CULL_FACE);
   }
 
+  private final Vector3f skyColor;
   private final EntityRenderer entityRenderer;
   private final TerrainRenderer terrainRenderer;
   private final Map<TexturedModel, List<Entity>> entities;
   private final List<Terrain> terrains;
 
-  public MasterRenderer(EntityRenderer renderer, TerrainRenderer terrainRenderer) {
+  public MasterRenderer(Vector3f skyColor, EntityRenderer renderer, TerrainRenderer terrainRenderer) {
+    this.skyColor = skyColor;
     this.entityRenderer = renderer;
     this.terrainRenderer = terrainRenderer;
     this.entities = new HashMap<>();
@@ -40,7 +43,7 @@ public class MasterRenderer implements AutoCloseable {
   public void prepare() {
     GL11.glEnable(GL11.GL_DEPTH_TEST);
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-    GL11.glClearColor(0.9f, 0.9f, 1.0f, 1.0f);
+    GL11.glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
   }
 
   public void add(Entity entity) {
@@ -58,6 +61,7 @@ public class MasterRenderer implements AutoCloseable {
   public void render(final Light light, final Camera camera) {
     this.prepare();
     entityRenderer.getShader().start();
+    entityRenderer.getShader().loadSky(skyColor);
     entityRenderer.getShader().loadLight(light);
     entityRenderer.getShader().loadViewMatrix(camera);
     entityRenderer.render(entities);
@@ -65,6 +69,7 @@ public class MasterRenderer implements AutoCloseable {
     entities.clear();
 
     terrainRenderer.getShader().start();
+    terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadLight(light);
     terrainRenderer.getShader().loadViewMatrix(camera);
     terrainRenderer.render(terrains);
