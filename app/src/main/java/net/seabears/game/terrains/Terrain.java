@@ -2,7 +2,8 @@ package net.seabears.game.terrains;
 
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
-import net.seabears.game.textures.ModelTexture;
+import net.seabears.game.textures.TerrainTexture;
+import net.seabears.game.textures.TerrainTexturePack;
 
 public class Terrain {
   private final float size;
@@ -10,19 +11,21 @@ public class Terrain {
 
   private final float x, z;
   private final RawModel model;
-  private final ModelTexture texture;
+  private final TerrainTexturePack texture;
+  private final TerrainTexture blendMap;
 
-  public Terrain(float x, float z, Loader loader, ModelTexture texture) {
-    this(800, 128, x, z, loader, texture);
+  public Terrain(float x, float z, Loader loader, TerrainTexturePack texture, TerrainTexture blendMap) {
+    this(800, 128, x, z, loader, texture, blendMap);
   }
 
-  public Terrain(float size, int vertexCount, float x, float z, Loader loader, ModelTexture texture) {
+  public Terrain(float size, int vertexCount, float x, float z, Loader loader, TerrainTexturePack texture, TerrainTexture blendMap) {
     this.size = size;
     this.vertexCount = vertexCount;
     this.x = x * size;
     this.z = z * size;
     this.model = generateTerrain(loader);
     this.texture = texture;
+    this.blendMap = blendMap;
   }
 
   public float getX() {
@@ -37,8 +40,12 @@ public class Terrain {
     return model;
   }
 
-  public ModelTexture getTexture() {
+  public TerrainTexturePack getTexture() {
     return texture;
+  }
+
+  public TerrainTexture getBlendMap() {
+    return blendMap;
   }
 
   private final RawModel generateTerrain(Loader loader) {

@@ -11,6 +11,12 @@ import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
 public class TerrainShader extends ShaderProgram {
+  public static final int TEXTURE_UNIT_BACKGROUND = 0;
+  public static final int TEXTURE_UNIT_R = 1;
+  public static final int TEXTURE_UNIT_G = 2;
+  public static final int TEXTURE_UNIT_B = 3;
+  public static final int TEXTURE_UNIT_BLEND = 4;
+
   private static final String SHADER_ROOT = "src/main/shaders/";
 
   private int locationFakeLighting;
@@ -22,6 +28,11 @@ public class TerrainShader extends ShaderProgram {
   private int locationSkyColor;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
+  private int locationBackgroundTexture;
+  private int locationrTexture;
+  private int locationgTexture;
+  private int locationbTexture;
+  private int locationBlendMap;
 
   public TerrainShader() {
     super(SHADER_ROOT + "terrainVertexShader.txt", SHADER_ROOT + "terrainFragmentShader.txt");
@@ -45,6 +56,11 @@ public class TerrainShader extends ShaderProgram {
     locationSkyColor = super.getUniformLocation("skyColor");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
+    locationBackgroundTexture = super.getUniformLocation("backgroundTexture");
+    locationrTexture = super.getUniformLocation("rTexture");
+    locationgTexture = super.getUniformLocation("gTexture");
+    locationbTexture = super.getUniformLocation("bTexture");
+    locationBlendMap = super.getUniformLocation("blendMap");
   }
 
   public void loadLight(Light light) {
@@ -58,6 +74,14 @@ public class TerrainShader extends ShaderProgram {
 
   public void loadSky(Vector3f color) {
     super.loadFloat(locationSkyColor, color);
+  }
+
+  public void loadTerrain() {
+    super.loadInt(locationBackgroundTexture, TEXTURE_UNIT_BACKGROUND);
+    super.loadInt(locationrTexture, TEXTURE_UNIT_R);
+    super.loadInt(locationgTexture, TEXTURE_UNIT_G);
+    super.loadInt(locationbTexture, TEXTURE_UNIT_B);
+    super.loadInt(locationBlendMap, TEXTURE_UNIT_BLEND);
   }
 
   public void loadTexture(ModelTexture texture) {

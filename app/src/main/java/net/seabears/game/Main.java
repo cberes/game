@@ -26,6 +26,8 @@ import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.shaders.TerrainShader;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.textures.ModelTexture;
+import net.seabears.game.textures.TerrainTexture;
+import net.seabears.game.textures.TerrainTexturePack;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 
@@ -51,7 +53,7 @@ public class Main {
   }
 
   private static void moveCamera(final Camera camera, final DirectionKeys dir, final MovementKeys mov) {
-    final float mag = 0.05f;
+    final float mag = 0.1f;
     final Vector3f move = new Vector3f();
     final Vector3f rotate = new Vector3f();
     if (mov.forward.get()) {
@@ -127,8 +129,14 @@ public class Main {
     /*
      * terrain
      */
-    final Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("grass")));
-    final Terrain terrain2 = new Terrain(-1, -1, loader, new ModelTexture(loader.loadTexture("grass")));
+    final TerrainTexturePack terrainPack = new TerrainTexturePack(
+            new TerrainTexture(loader.loadTexture("grass")),
+            new TerrainTexture(loader.loadTexture("mud")),
+            new TerrainTexture(loader.loadTexture("grass-flowers")),
+            new TerrainTexture(loader.loadTexture("tile-path")));
+    final TerrainTexture terrainBlend = new TerrainTexture(loader.loadTexture("blend-map"));
+    final Terrain terrain1 = new Terrain(0, -1, loader, terrainPack, terrainBlend);
+    final Terrain terrain2 = new Terrain(-1, -1, loader, terrainPack, terrainBlend);
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
