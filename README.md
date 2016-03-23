@@ -11,3 +11,7 @@ Launch the app with Gradle to detect the correct native libraries.
 
     gradle run
 
+# Info
+
+I'm developing this by following [tutorials](https://www.youtube.com/watch?v=VS8wlS9hF8E&list=PLRIWtICgwaX0u7Rf9zkZhLoLuZVfUksDP) by [ThinMatrix](https://www.youtube.com/user/ThinMatrix). However, LWJGL 3 is used instead of LWJGL 2.
+
