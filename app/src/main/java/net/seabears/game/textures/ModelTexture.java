@@ -6,7 +6,7 @@ public class ModelTexture {
   private final float shineDamper;
 
   public ModelTexture(int textureId) {
-    this(textureId, 1.0f, 0.0f);
+    this(textureId, 0.0f, 1.0f);
   }
 
   public ModelTexture(int textureId, float reflectivity, float shineDamper) {

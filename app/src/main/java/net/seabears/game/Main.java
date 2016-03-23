@@ -18,12 +18,19 @@ import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.ObjLoader;
-import net.seabears.game.render.Renderer;
-import net.seabears.game.shaders.ShaderProgram;
+import net.seabears.game.render.TerrainRenderer;
+import net.seabears.game.render.EntityRenderer;
 import net.seabears.game.shaders.StaticShader;
+import net.seabears.game.shaders.TerrainShader;
+import net.seabears.game.terrains.Terrain;
 import net.seabears.game.textures.ModelTexture;
+import net.seabears.game.util.ProjectionMatrix;
 
 public class Main {
+  private static final float FOV = 70.0f;
+  private static final float NEAR_PLANE = 0.1f;
+  private static final float FAR_PLANE = 1000.0f;
+
   public void run() {
     final DirectionKeys dirKeys = new DirectionKeys();
     final MovementKeys movKeys = new MovementKeys();
@@ -31,7 +38,7 @@ public class Main {
     MasterRenderer renderer = null;
     try (DisplayManager display = new DisplayManager("Hello World!", 800, 600)) {
       init(display, dirKeys, movKeys);
-      renderer = loop(display, loader, new StaticShader(), dirKeys, movKeys);
+      renderer = loop(display, loader, dirKeys, movKeys);
     } finally {
       if (renderer != null) {
         renderer.close();
@@ -57,23 +64,29 @@ public class Main {
     return move;
   }
 
-  private MasterRenderer loop(final DisplayManager display, final Loader loader,
-      final ShaderProgram shader, final DirectionKeys dir, final MovementKeys mov) {
+  private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov) {
     // lights, camera, ...
-    final Light light = new Light(new Vector3f(0.0f, 5.0f, -10.0f), new Vector3f(1.0f, 1.0f, 1.0f));
+    final Light light = new Light(new Vector3f(3000.0f, 2000.0f, 2000.0f), new Vector3f(1.0f, 1.0f, 1.0f));
     final Camera camera = new Camera();
+    camera.move(new Vector3f(0.0f, 10.0f, 0.0f));
 
     // rendering
-    final Renderer renderer =
-        new Renderer(display.getWidth(), display.getHeight(), (StaticShader) shader);
-    final MasterRenderer master = new MasterRenderer((StaticShader) shader, renderer);
+    final ProjectionMatrix projMatrix = new ProjectionMatrix(display.getWidth(), display.getHeight(), FOV, NEAR_PLANE, FAR_PLANE);
+    final StaticShader shader = new StaticShader();
+    final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
+    final TerrainShader terrainShader = new TerrainShader();
+    final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
+    final MasterRenderer master = new MasterRenderer(renderer, terrainRenderer);
 
     // models and entities
     final RawModel model = ObjLoader.loadObjModel("stall", loader);
     final ModelTexture texture = new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f);
     final TexturedModel texturedModel = new TexturedModel(model, texture);
-    final Entity entity = new Entity(texturedModel, new Vector3f(0.0f, -5.0f, -20.0f),
-        new Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
+    final Entity entity = new Entity(texturedModel,
+        new Vector3f(0.0f, 0.0f, -50.0f),
+        new Vector3f(0.0f, 180.0f, 0.0f), 1.0f);
+    final Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("grass")));
+    final Terrain terrain2 = new Terrain(-1, -1, loader, new ModelTexture(loader.loadTexture("grass")));
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
@@ -83,8 +96,9 @@ public class Main {
       }
 
       camera.move(cameraMovement(dir));
-      entity.increaseRotation(new Vector3f(0.0f, 1.0f, 0.0f));
       master.add(entity);
+      master.add(terrain1);
+      master.add(terrain2);
       master.render(light, camera);
 
       display.update();

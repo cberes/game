@@ -13,6 +13,10 @@ import org.joml.Vector3f;
 import net.seabears.game.models.RawModel;
 
 public final class ObjLoader {
+  private ObjLoader() {
+    throw new UnsupportedOperationException("cannot instantiate " + getClass());
+  }
+
   public static RawModel loadObjModel(String filename, Loader loader) {
     List<String> lines = null;
     try {

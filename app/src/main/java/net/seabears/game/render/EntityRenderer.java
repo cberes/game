@@ -13,32 +13,19 @@ import net.seabears.game.entities.Entity;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.shaders.StaticShader;
-import net.seabears.game.util.ProjectionMatrix;
 
-public class Renderer {
-  private static final float FOV = 70.0f;
-  private static final float NEAR_PLANE = 0.1f;
-  private static final float FAR_PLANE = 1000.0f;
-
-  private final Matrix4f projectionMatrix;
+public class EntityRenderer {
   private final StaticShader shader;
 
-  public Renderer(int w, int h, StaticShader shader) {
-    // don't render triangles facing away from the camera
-    GL11.glEnable(GL11.GL_CULL_FACE);
-    GL11.glCullFace(GL11.GL_BACK);
-
+  public EntityRenderer(StaticShader shader, Matrix4f projectionMatrix) {
     this.shader = shader;
-    projectionMatrix = new ProjectionMatrix(w, h, FOV, NEAR_PLANE, FAR_PLANE).toMatrix();
-    shader.start();
-    shader.loadProjectionMatrix(projectionMatrix);
-    shader.stop();
+    this.shader.start();
+    this.shader.loadProjectionMatrix(projectionMatrix);
+    this.shader.stop();
   }
 
-  public void prepare() {
-    GL11.glEnable(GL11.GL_DEPTH_TEST);
-    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-    GL11.glClearColor(0.0f, 0.0f, 0.25f, 1.0f);
+  public StaticShader getShader() {
+    return shader;
   }
 
   public void render(Map<TexturedModel, List<Entity>> entities) {
