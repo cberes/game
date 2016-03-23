@@ -12,6 +12,7 @@ import net.seabears.game.models.RawModel;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.shaders.TerrainShader;
 import net.seabears.game.terrains.Terrain;
+import net.seabears.game.textures.ModelTexture;
 
 public class TerrainRenderer {
   private final TerrainShader shader;
@@ -30,13 +31,14 @@ public class TerrainRenderer {
   public void render(List<Terrain> terrains) {
     for (Terrain terrain : terrains) {
       final RawModel model = terrain.getModel();
+      final ModelTexture texture = terrain.getTexture();
       GL30.glBindVertexArray(model.getVaoId());
       GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
       GL20.glEnableVertexAttribArray(StaticShader.ATTR_TEXTURE);
       GL20.glEnableVertexAttribArray(StaticShader.ATTR_NORMAL);
-      shader.loadShine(terrain.getTexture().getReflectivity(), terrain.getTexture().getShineDamper());
+      shader.loadTexture(texture);
       GL13.glActiveTexture(GL13.GL_TEXTURE0);
-      GL11.glBindTexture(GL11.GL_TEXTURE_2D, terrain.getTexture().getTextureId());
+      GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTextureId());
       shader.loadTransformationMatrix(terrain);
       GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
       GL20.glDisableVertexAttribArray(StaticShader.ATTR_POSITION);

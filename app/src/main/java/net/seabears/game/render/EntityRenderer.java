@@ -13,6 +13,7 @@ import net.seabears.game.entities.Entity;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.shaders.StaticShader;
+import net.seabears.game.textures.ModelTexture;
 
 public class EntityRenderer {
   private final StaticShader shader;
@@ -30,18 +31,25 @@ public class EntityRenderer {
 
   public void render(Map<TexturedModel, List<Entity>> entities) {
     for (Map.Entry<TexturedModel, List<Entity>> entry : entities.entrySet()) {
-      final TexturedModel tmodel = entry.getKey();
-      final RawModel model = tmodel.getRawModel();
-      GL30.glBindVertexArray(model.getVaoId());
+      final TexturedModel model = entry.getKey();
+      final RawModel rawModel = model.getRawModel();
+      final ModelTexture texture = model.getTexture();
+      GL30.glBindVertexArray(rawModel.getVaoId());
       GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
       GL20.glEnableVertexAttribArray(StaticShader.ATTR_TEXTURE);
       GL20.glEnableVertexAttribArray(StaticShader.ATTR_NORMAL);
-      shader.loadShine(tmodel.getTexture().getReflectivity(), tmodel.getTexture().getShineDamper());
+      if (texture.isTransparent()) {
+        MasterRenderer.disableCulling();
+      }
+      shader.loadTexture(model.getTexture());
       GL13.glActiveTexture(GL13.GL_TEXTURE0);
-      GL11.glBindTexture(GL11.GL_TEXTURE_2D, tmodel.getTexture().getTextureId());
+      GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTextureId());
       for (Entity entity : entry.getValue()) {
         shader.loadTransformationMatrix(entity);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+      }
+      if (texture.isTransparent()) {
+        MasterRenderer.enableCulling();
       }
       GL20.glDisableVertexAttribArray(StaticShader.ATTR_POSITION);
       GL20.glDisableVertexAttribArray(StaticShader.ATTR_TEXTURE);

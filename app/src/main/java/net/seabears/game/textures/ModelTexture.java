@@ -4,15 +4,27 @@ public class ModelTexture {
   private final int textureId;
   private final float reflectivity;
   private final float shineDamper;
+  private final boolean transparent;
+  private final boolean fakeLighting;
 
   public ModelTexture(int textureId) {
-    this(textureId, 0.0f, 1.0f);
+    this(textureId, false, false);
+  }
+
+  public ModelTexture(int textureId, boolean transparent, boolean fakeLighting) {
+    this(textureId, 0.0f, 1.0f, transparent, fakeLighting);
   }
 
   public ModelTexture(int textureId, float reflectivity, float shineDamper) {
+    this(textureId, reflectivity, shineDamper, false, false);
+  }
+
+  public ModelTexture(int textureId, float reflectivity, float shineDamper, boolean transparent, boolean fakeLighting) {
     this.textureId = textureId;
     this.reflectivity = reflectivity;
     this.shineDamper = shineDamper;
+    this.transparent = transparent;
+    this.fakeLighting = fakeLighting;
   }
 
   public int getTextureId() {
@@ -27,26 +39,34 @@ public class ModelTexture {
     return shineDamper;
   }
 
-    @Override
-    public int hashCode() {
+  public boolean isTransparent() {
+    return transparent;
+  }
+
+  public boolean isFakeLighting() {
+    return fakeLighting;
+  }
+
+  @Override
+  public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + Float.floatToIntBits(reflectivity);
     result = prime * result + Float.floatToIntBits(shineDamper);
     result = prime * result + textureId;
     return result;
-    }
+  }
 
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
-        return true;
+      return true;
     }
     if (obj == null) {
-        return false;
+      return false;
     }
     if (getClass() != obj.getClass()) {
-        return false;
+      return false;
     }
 
     final ModelTexture other = (ModelTexture) obj;

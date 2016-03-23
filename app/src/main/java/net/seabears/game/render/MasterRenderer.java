@@ -14,6 +14,16 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.terrains.Terrain;
 
 public class MasterRenderer implements AutoCloseable {
+  public static void enableCulling() {
+    // don't render triangles facing away from the camera
+    GL11.glEnable(GL11.GL_CULL_FACE);
+    GL11.glCullFace(GL11.GL_BACK);
+  }
+
+  public static void disableCulling() {
+    GL11.glDisable(GL11.GL_CULL_FACE);
+  }
+
   private final EntityRenderer entityRenderer;
   private final TerrainRenderer terrainRenderer;
   private final Map<TexturedModel, List<Entity>> entities;
@@ -24,10 +34,7 @@ public class MasterRenderer implements AutoCloseable {
     this.terrainRenderer = terrainRenderer;
     this.entities = new HashMap<>();
     this.terrains = new ArrayList<>();
-
-    // don't render triangles facing away from the camera
-    GL11.glEnable(GL11.GL_CULL_FACE);
-    GL11.glCullFace(GL11.GL_BACK);
+    enableCulling();
   }
 
   public void prepare() {

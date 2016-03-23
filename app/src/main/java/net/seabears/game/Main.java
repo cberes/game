@@ -3,6 +3,10 @@ package net.seabears.game;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
@@ -12,7 +16,6 @@ import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MovementKeys;
-import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
@@ -48,29 +51,34 @@ public class Main {
   }
 
   private static Vector3f cameraMovement(final DirectionKeys dir) {
+    final float mag = 0.05f;
     final Vector3f move = new Vector3f();
     if (dir.up.get()) {
-      move.add(0.0f, 0.0f, -0.02f);
+      move.add(0.0f, 0.0f, -mag);
     }
     if (dir.down.get()) {
-      move.add(0.0f, 0.0f, 0.02f);
+      move.add(0.0f, 0.0f, mag);
     }
     if (dir.right.get()) {
-      move.add(0.02f, 0.0f, 0.0f);
+      move.add(mag, 0.0f, 0.0f);
     }
     if (dir.left.get()) {
-      move.add(-0.02f, 0.0f, 0.0f);
+      move.add(-mag, 0.0f, 0.0f);
     }
     return move;
   }
 
   private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov) {
-    // lights, camera, ...
+    /*
+     * lights, camera, ...
+     */
     final Light light = new Light(new Vector3f(3000.0f, 2000.0f, 2000.0f), new Vector3f(1.0f, 1.0f, 1.0f));
     final Camera camera = new Camera();
     camera.move(new Vector3f(0.0f, 10.0f, 0.0f));
 
-    // rendering
+    /*
+     * rendering
+     */
     final ProjectionMatrix projMatrix = new ProjectionMatrix(display.getWidth(), display.getHeight(), FOV, NEAR_PLANE, FAR_PLANE);
     final StaticShader shader = new StaticShader();
     final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
@@ -78,13 +86,33 @@ public class Main {
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
     final MasterRenderer master = new MasterRenderer(renderer, terrainRenderer);
 
-    // models and entities
-    final RawModel model = ObjLoader.loadObjModel("stall", loader);
-    final ModelTexture texture = new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f);
-    final TexturedModel texturedModel = new TexturedModel(model, texture);
-    final Entity entity = new Entity(texturedModel,
-        new Vector3f(0.0f, 0.0f, -50.0f),
-        new Vector3f(0.0f, 180.0f, 0.0f), 1.0f);
+    /*
+     * models
+     */
+    final TexturedModel stall = new TexturedModel(ObjLoader.loadObjModel("stall", loader),
+        new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f));
+    final TexturedModel tree = new TexturedModel(ObjLoader.loadObjModel("tree", loader),
+        new ModelTexture(loader.loadTexture("tree")));
+    final TexturedModel grass = new TexturedModel(ObjLoader.loadObjModel("grassModel", loader),
+        new ModelTexture(loader.loadTexture("grassTexture"), true, true));
+    final TexturedModel fern = new TexturedModel(ObjLoader.loadObjModel("fern", loader),
+        new ModelTexture(loader.loadTexture("fern"), true, true));
+
+    /*
+     * entities
+     */
+    final List<Entity> entities = new ArrayList<>();
+    entities.add(new Entity(stall, new Vector3f(0.0f, 0.0f, -50.0f), new Vector3f(0.0f, 180.0f, 0.0f), 1.0f));
+    final Random rand = new Random();
+    for (int i = 0; i < 500; ++i) {
+      entities.add(new Entity(tree, new Vector3f(rand.nextFloat() * 800 - 400, 0, rand.nextFloat() * -600), new Vector3f().zero(), 3.0f));
+      entities.add(new Entity(grass, new Vector3f(rand.nextFloat() * 800 - 400, 0, rand.nextFloat() * -600), new Vector3f().zero(), 1.0f));
+      entities.add(new Entity(fern, new Vector3f(rand.nextFloat() * 800 - 400, 0, rand.nextFloat() * -600), new Vector3f().zero(), 0.6f));
+    }
+
+    /*
+     * terrain
+     */
     final Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("grass")));
     final Terrain terrain2 = new Terrain(-1, -1, loader, new ModelTexture(loader.loadTexture("grass")));
 
@@ -96,7 +124,7 @@ public class Main {
       }
 
       camera.move(cameraMovement(dir));
-      master.add(entity);
+      entities.forEach(master::add);
       master.add(terrain1);
       master.add(terrain2);
       master.render(light, camera);

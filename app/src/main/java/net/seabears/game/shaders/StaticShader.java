@@ -5,6 +5,7 @@ import org.joml.Matrix4f;
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
+import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
@@ -14,9 +15,8 @@ public class StaticShader extends ShaderProgram {
   public static final int ATTR_POSITION = 0;
   public static final int ATTR_TEXTURE = 1;
   public static final int ATTR_NORMAL = 2;
-  public static final int ATTR_REFLECTIVITY = 3;
-  public static final int ATTR_SHINE_DAMPER = 4;
 
+  private int locationFakeLighting;
   private int locationLightColor;
   private int locationLightPosition;
   private int locationProjectionMatrix;
@@ -38,6 +38,7 @@ public class StaticShader extends ShaderProgram {
 
   @Override
   protected void getAllUniformLocations() {
+    locationFakeLighting = super.getUniformLocation("fakeLighting");
     locationLightColor = super.getUniformLocation("lightColor");
     locationLightPosition = super.getUniformLocation("lightPosition");
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
@@ -56,9 +57,10 @@ public class StaticShader extends ShaderProgram {
     super.loadMatrix(locationProjectionMatrix, matrix);
   }
 
-  public void loadShine(float reflectivity, float shineDamper) {
-    super.loadFloat(locationReflectivity, reflectivity);
-    super.loadFloat(locationShineDamper, shineDamper);
+  public void loadTexture(ModelTexture texture) {
+    super.loadFloat(locationFakeLighting, texture.isFakeLighting());
+    super.loadFloat(locationReflectivity, texture.getReflectivity());
+    super.loadFloat(locationShineDamper, texture.getShineDamper());
   }
 
   public void loadTransformationMatrix(Entity entity) {
