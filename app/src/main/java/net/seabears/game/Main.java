@@ -37,6 +37,7 @@ public class Main {
   private static final float FOV = 70.0f;
   private static final float NEAR_PLANE = 0.1f;
   private static final float FAR_PLANE = 1000.0f;
+  private static final float GRAVITY = -32.0f;
 
   public void run() {
     final DirectionKeys dirKeys = new DirectionKeys();
@@ -122,7 +123,7 @@ public class Main {
      * player
      */
     final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
-    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 1.0f, fps, 20.0f, 160.0f, 30.0f, -50.0f);
+    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 1.0f, fps, 20.0f, 160.0f, -GRAVITY / 2.0f, GRAVITY);
 
     /*
      * entities
