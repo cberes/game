@@ -14,12 +14,15 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GLCapabilities;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import net.seabears.game.models.RawModel;
@@ -60,6 +63,10 @@ public class Loader implements AutoCloseable {
   }
 
   public int loadTexture(String filename) throws IOException {
+      return loadTexture(filename, 4.0f);
+  }
+
+  public int loadTexture(String filename, final float anisotropicLevel) throws IOException {
     // Open the PNG file as an InputStream
     InputStream in = new FileInputStream(RES_ROOT + filename + ".png");
     // Link the PNG decoder to this stream
@@ -89,8 +96,15 @@ public class Loader implements AutoCloseable {
     GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, tWidth, tHeight, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
     GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-    // lessen the mip-mapping
-    GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -1.0f);
+    if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
+        final float amount = Math.min(anisotropicLevel, GL11.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
+        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0.0f);
+    } else {
+        System.out.println("Anisotropic filtering is not supported");
+        // lessen the mip-mapping
+        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -1.0f);
+    }
     return texId;
   }
 
