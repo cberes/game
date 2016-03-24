@@ -90,9 +90,10 @@ public class Main {
      * lights, camera, ...
      */
     final List<Light> lights = new ArrayList<>();
-    lights.add(new Light(new Vector3f(0.0f, 10000.0f, -7000.0f), new Vector3f(1.0f, 1.0f, 1.0f)));
-    lights.add(new Light(new Vector3f(-200.0f, 10.0f, -200.0f), new Vector3f(10.0f, 0.0f, 0.0f)));
-    lights.add(new Light(new Vector3f(200.0f, 10.0f, 200.0f), new Vector3f(0.0f, 0.0f, 10.0f)));
+    lights.add(new Light(new Vector3f(0.0f, 1000.0f, -7000.0f), new Vector3f(0.4f, 0.4f, 0.4f)));
+    lights.add(new Light(new Vector3f(185.0f, 10.0f, -293.0f), new Vector3f(2.0f, 0.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
+    lights.add(new Light(new Vector3f(370.0f, 17.0f, -300.0f), new Vector3f(0.0f, 2.0f, 2.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
+    lights.add(new Light(new Vector3f(293.0f,  7.0f, -305.0f), new Vector3f(2.0f, 2.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
     final Camera camera = new Camera(player);
 
     /*
@@ -111,8 +112,10 @@ public class Main {
      */
     final TexturedModel stall = new TexturedModel(loader.loadToVao(ObjFileLoader.load("stall")),
         new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f));
-    final TexturedModel tree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("tree")),
-        new ModelTexture(loader.loadTexture("tree")));
+    final TexturedModel lamp = new TexturedModel(loader.loadToVao(ObjFileLoader.load("lamp")),
+        new ModelTexture(loader.loadTexture("lamp"), 1.0f, 5.0f));
+    final TexturedModel tree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("pine")),
+        new ModelTexture(loader.loadTexture("pine"), true, true));
     final TexturedModel lowPolyTree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("lowPolyTree")),
         new ModelTexture(loader.loadTexture("lowPolyTree"), 2));
     final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
@@ -139,12 +142,15 @@ public class Main {
     entities.add(player);
     final Random rand = new Random();
     final int numTrees = 1000;
+    entities.add(new Entity(lamp, new Vector3f(185.0f, -4.7f, -293.0f), new Vector3f(), 1.0f));
+    entities.add(new Entity(lamp, new Vector3f(370.0f,  4.2f, -300.0f), new Vector3f(), 1.0f));
+    entities.add(new Entity(lamp, new Vector3f(293.0f, -6.8f, -305.0f), new Vector3f(), 1.0f));
     for (int i = 0; i < numTrees; ++i) {
-      entities.add(new Entity(tree, position(rand, terrains), new Vector3f().zero(), 3.0f));
-      entities.add(new Entity(lowPolyTree, rand.nextInt(4), position(rand, terrains), new Vector3f().zero(), 0.4f));
+      entities.add(new Entity(tree, position(rand, terrains), new Vector3f(), 0.8f));
+      entities.add(new Entity(lowPolyTree, rand.nextInt(4), position(rand, terrains), new Vector3f(), 0.4f));
     }
     for (int i = 0; i < numTrees * 4; ++i) {
-      entities.add(new Entity(fern, rand.nextInt(4), position(rand, terrains), new Vector3f().zero(), 0.6f));
+      entities.add(new Entity(fern, rand.nextInt(4), position(rand, terrains), new Vector3f(), 0.6f));
     }
     for (int i = 0; i < 10; ++i) {
       entities.add(new Entity(stall, position(rand, terrains), new Vector3f(0.0f, rand.nextInt(360), 0.0f), 1.0f));

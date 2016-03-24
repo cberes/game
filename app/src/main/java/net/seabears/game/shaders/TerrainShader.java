@@ -26,6 +26,7 @@ public class TerrainShader extends ShaderProgram {
 
   private final int lights;
   private int locationFakeLighting;
+  private int[] locationLightAttenuation;
   private int[] locationLightColor;
   private int[] locationLightPosition;
   private int locationProjectionMatrix;
@@ -55,6 +56,7 @@ public class TerrainShader extends ShaderProgram {
   @Override
   protected void getAllUniformLocations() {
     locationFakeLighting = super.getUniformLocation("fakeLighting");
+    locationLightAttenuation = super.getUniformLocations("attenuation", lights);
     locationLightColor = super.getUniformLocations("lightColor", lights);
     locationLightPosition = super.getUniformLocations("lightPosition", lights);
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
@@ -79,6 +81,7 @@ public class TerrainShader extends ShaderProgram {
   }
 
   private void loadLight(Light light, int index) {
+    super.loadFloat(locationLightAttenuation[index], light.getAttenuation());
     super.loadFloat(locationLightColor[index], light.getColor());
     super.loadFloat(locationLightPosition[index], light.getPosition());
   }
