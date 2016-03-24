@@ -4,19 +4,28 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
+import org.lwjgl.glfw.GLFWScrollCallback;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.Player;
+import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MovementKeys;
+import net.seabears.game.input.Scroll;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
@@ -32,6 +41,7 @@ import net.seabears.game.textures.TerrainTexturePack;
 import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
+import net.seabears.game.util.Volume;
 
 public class Main {
   private static final float FOV = 70.0f;
@@ -43,10 +53,12 @@ public class Main {
     final DirectionKeys dirKeys = new DirectionKeys();
     final MovementKeys movKeys = new MovementKeys();
     final Loader loader = new Loader();
+    final BlockingQueue<Scroll> scrolls = new LinkedBlockingDeque<>();
     MasterRenderer renderer = null;
     try (DisplayManager display = new DisplayManager("Game Engine", 800, 600)) {
-      init(display, dirKeys, movKeys);
-      renderer = loop(display, loader, dirKeys, movKeys);
+      final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight());
+      init(display, dirKeys, movKeys, scrolls, panTilt);
+      renderer = loop(display, loader, dirKeys, movKeys, scrolls, panTilt);
     } finally {
       if (renderer != null) {
         renderer.close();
@@ -55,47 +67,20 @@ public class Main {
     }
   }
 
-  private static void moveCamera(final Camera camera, final DirectionKeys dir, final MovementKeys mov) {
-    final float mag = 0.1f;
-    final Vector3f move = new Vector3f();
-    final Vector3f rotate = new Vector3f();
-//    if (mov.forward.get()) {
-//      move.add(0.0f, 0.0f, -mag);
-//    }
-//    if (mov.backward.get()) {
-//      move.add(0.0f, 0.0f, mag);
-//    }
-//    if (mov.right.get()) {
-//      move.add(mag, 0.0f, 0.0f);
-//    }
-//    if (mov.left.get()) {
-//      move.add(-mag, 0.0f, 0.0f);
-//    }
-    if (dir.up.get()) {
-      move.add(0.0f, mag, 0.0f);
-    }
-    if (dir.down.get()) {
-      move.add(0.0f, -mag, 0.0f);
-    }
-    if (dir.right.get()) {
-      rotate.add(0.0f, mag * 2.0f, 0.0f);
-    }
-    if (dir.left.get()) {
-      rotate.add(0.0f, -mag * 2.0f, 0.0f);
-    }
-    camera.move(move);
-    camera.rotate(rotate);
-  }
-
-  private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov) {
+  private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) {
     final FpsCalc fps = new FpsCalc();
+
+    /*
+     * player
+     */
+    final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
+    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 1.0f, fps, new Volume(10, 6), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
 
     /*
      * lights, camera, ...
      */
     final Light light = new Light(new Vector3f(3000.0f, 2000.0f, 2000.0f), new Vector3f(1.0f, 1.0f, 1.0f));
-    final Camera camera = new Camera();
-    camera.move(new Vector3f(0.0f, 10.0f, 0.0f));
+    final Camera camera = new Camera(player);
 
     /*
      * rendering
@@ -118,12 +103,6 @@ public class Main {
         new ModelTexture(loader.loadTexture("grassTexture"), true, true));
     final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
         new ModelTexture(loader.loadTexture("fern"), true, true));
-
-    /*
-     * player
-     */
-    final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
-    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 1.0f, fps, 20.0f, 160.0f, -GRAVITY / 2.0f, GRAVITY);
 
     /*
      * entities
@@ -152,13 +131,28 @@ public class Main {
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
+    final List<Scroll> currentScrolls = new LinkedList<>();
     while (display.isRunning()) {
+      // update timing
       fps.update();
-      moveCamera(camera, dir, mov);
+
+      // move player
       player.move(mov, 0.0f);
+
+      // move camera (after player)
+      currentScrolls.clear();
+      scrolls.drainTo(currentScrolls);
+      currentScrolls.forEach(camera::zoom);
+      camera.pan(panTilt.get());
+      camera.tilt(panTilt.get());
+      camera.move();
+
+      // add entities
       entities.forEach(master::add);
       master.add(terrain1);
       master.add(terrain2);
+
+      // render scene
       master.render(light, camera);
 
       // I don't know if the stuff in here is necessary
@@ -167,9 +161,10 @@ public class Main {
     return master;
   }
 
-  private void init(final DisplayManager display, final DirectionKeys dir, final MovementKeys mov) {
-    // Setup a key callback. It will be called every time a key is pressed, repeated or
-    // released.
+  private void init(final DisplayManager display, final DirectionKeys dir, final MovementKeys mov, final Queue<Scroll> scrolls, final CameraPanTilt panTilt) {
+    /*
+     * Keyboard callback
+     */
     display.setKeyCallback(new GLFWKeyCallback() {
       @Override
       public void invoke(long window, int key, int scancode, int action, int mods) {
@@ -179,7 +174,7 @@ public class Main {
         }
 
         // whether key is pressed or held down
-        final boolean active = action == GLFW_PRESS || action != GLFW_RELEASE;
+        final boolean active = action == GLFW_PRESS || action == GLFW_REPEAT;
 
         // directions
         if (key == GLFW_KEY_UP) {
@@ -212,19 +207,37 @@ public class Main {
       }
     });
 
-    // Setup the cursor pos callback.
+    /*
+     * Mouse callbacks
+     */
+    final AtomicBoolean rightMbPressed = new AtomicBoolean();
     display.setMouseButtonCallback(new GLFWMouseButtonCallback() {
       @Override
       public void invoke(long window, int button, int action, int mods) {
-        if (button == 0) {
-          // If this event is down event and no current to-add-ball.
-          // Else If this event is up event and there is a current to-add-ball.
-          if (action == GLFW_PRESS) {
-            // do nothing right now
-          } else if (action == GLFW_RELEASE) {
-            // also do nothing
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+          if (action == GLFW_RELEASE) {
+            rightMbPressed.set(false);
+            panTilt.reset();
+          } else {
+            rightMbPressed.set(true);
           }
         }
+      }
+    });
+
+    display.setCursorPosCallback(new GLFWCursorPosCallback() {
+      @Override
+      public void invoke(long window, double xpos, double ypos) {
+        if (rightMbPressed.get()) {
+          panTilt.set((int) xpos, (int) ypos);
+        }
+      }
+    });
+
+    display.setScrollCallback(new GLFWScrollCallback() {
+      @Override
+      public void invoke(long window, double xoffset, double yoffset) {
+        scrolls.offer(new Scroll(xoffset, yoffset));
       }
     });
 

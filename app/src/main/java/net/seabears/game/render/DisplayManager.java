@@ -7,10 +7,12 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
+import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
@@ -21,8 +23,10 @@ public class DisplayManager implements AutoCloseable {
   private final int height;
   private final GLFWErrorCallback errorCallback;
   private final GLFWFramebufferSizeCallback framebufferSizeCallback;
+  private GLFWCursorPosCallback cursorPosCallback;
   private GLFWKeyCallback keyCallback;
   private GLFWMouseButtonCallback mouseButtonCallback;
+  private GLFWScrollCallback scrollCallback;
 
   public DisplayManager(String title, int width, int height) {
     this.width = width;
@@ -57,12 +61,20 @@ public class DisplayManager implements AutoCloseable {
         }));
   }
 
+  public void setCursorPosCallback(GLFWCursorPosCallback cursorPosCallback) {
+    this.cursorPosCallback = cursorPosCallback;
+  }
+
   public void setKeyCallback(GLFWKeyCallback keyCallback) {
     this.keyCallback = keyCallback;
   }
 
   public void setMouseButtonCallback(GLFWMouseButtonCallback mouseButtonCallback) {
     this.mouseButtonCallback = mouseButtonCallback;
+  }
+
+  public void setScrollCallback(GLFWScrollCallback scrollCallback) {
+    this.scrollCallback = scrollCallback;
   }
 
   /**
@@ -80,14 +92,18 @@ public class DisplayManager implements AutoCloseable {
   }
 
   public void init() {
-    // Setup a key callback. It will be called every time a key is pressed, repeated or released.
+    // set callbacks
+    if (cursorPosCallback != null) {
+      glfwSetCursorPosCallback(window, cursorPosCallback);
+    }
     if (keyCallback != null) {
       glfwSetKeyCallback(window, keyCallback);
     }
-
-    // Setup the cursor pos callback.
     if (mouseButtonCallback != null) {
       glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    }
+    if (scrollCallback != null) {
+      glfwSetScrollCallback(window, scrollCallback);
     }
 
     // Get the resolution of the primary monitor
@@ -147,11 +163,17 @@ public class DisplayManager implements AutoCloseable {
     // Release input and window callbacks
     glfwDestroyWindow(window);
     framebufferSizeCallback.release();
+    if (cursorPosCallback != null) {
+      cursorPosCallback.release();
+    }
     if (keyCallback != null) {
       keyCallback.release();
     }
     if (mouseButtonCallback != null) {
       mouseButtonCallback.release();
+    }
+    if (scrollCallback != null) {
+      scrollCallback.release();
     }
 
     // Terminate GLFW and release the GLFWErrorCallback

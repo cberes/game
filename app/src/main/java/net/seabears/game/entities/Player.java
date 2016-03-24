@@ -5,9 +5,11 @@ import org.joml.Vector3f;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.util.FpsCalc;
+import net.seabears.game.util.Volume;
 
 public class Player extends Entity {
   private final FpsCalc fps;
+  private final Volume size;
   private final float runSpeed;
   private final float turnSpeed;
   private final float gravity;
@@ -16,13 +18,18 @@ public class Player extends Entity {
   private boolean inAir;
 
   public Player(TexturedModel model, Vector3f position, Vector3f rotation, float scale, FpsCalc fps,
-      float runSpeed, float turnSpeed, float jumpPower, float gravity) {
+      Volume size, float runSpeed, float turnSpeed, float jumpPower, float gravity) {
     super(model, position, rotation, scale);
     this.fps = fps;
+    this.size = size;
     this.runSpeed = runSpeed;
     this.turnSpeed = turnSpeed;
     this.jumpPower = jumpPower;
     this.gravity = gravity;
+  }
+
+  public Volume getSize() {
+    return size;
   }
 
   public void move(final MovementKeys keys, final float terrainHeight) {
