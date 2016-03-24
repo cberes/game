@@ -2,6 +2,7 @@ package net.seabears.game.textures;
 
 public class ModelTexture {
   private final int textureId;
+  private final int rows;
   private final float reflectivity;
   private final float shineDamper;
   private final boolean transparent;
@@ -12,15 +13,24 @@ public class ModelTexture {
   }
 
   public ModelTexture(int textureId, boolean transparent, boolean fakeLighting) {
-    this(textureId, 0.0f, 1.0f, transparent, fakeLighting);
+    this(textureId, 1, transparent, fakeLighting);
   }
 
   public ModelTexture(int textureId, float reflectivity, float shineDamper) {
-    this(textureId, reflectivity, shineDamper, false, false);
+    this(textureId, 1, reflectivity, shineDamper);
   }
 
-  public ModelTexture(int textureId, float reflectivity, float shineDamper, boolean transparent, boolean fakeLighting) {
+  public ModelTexture(int textureId, int rows, boolean transparent, boolean fakeLighting) {
+    this(textureId, rows, 0.0f, 1.0f, transparent, fakeLighting);
+  }
+
+  public ModelTexture(int textureId, int rows, float reflectivity, float shineDamper) {
+    this(textureId, rows, reflectivity, shineDamper, false, false);
+  }
+
+  public ModelTexture(int textureId, int rows, float reflectivity, float shineDamper, boolean transparent, boolean fakeLighting) {
     this.textureId = textureId;
+    this.rows = rows;
     this.reflectivity = reflectivity;
     this.shineDamper = shineDamper;
     this.transparent = transparent;
@@ -29,6 +39,10 @@ public class ModelTexture {
 
   public int getTextureId() {
     return textureId;
+  }
+
+  public int getRows() {
+    return rows;
   }
 
   public float getReflectivity() {

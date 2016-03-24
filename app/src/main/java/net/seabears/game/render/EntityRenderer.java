@@ -45,7 +45,7 @@ public class EntityRenderer {
       GL13.glActiveTexture(GL13.GL_TEXTURE0);
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTextureId());
       for (Entity entity : entry.getValue()) {
-        shader.loadTransformationMatrix(entity);
+        shader.loadEntity(entity);
         GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
       }
       if (texture.isTransparent()) {

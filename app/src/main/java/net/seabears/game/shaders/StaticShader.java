@@ -3,6 +3,7 @@ package net.seabears.game.shaders;
 import java.io.IOException;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import net.seabears.game.entities.Camera;
@@ -26,6 +27,8 @@ public class StaticShader extends ShaderProgram {
   private int locationReflectivity;
   private int locationShineDamper;
   private int locationSkyColor;
+  private int locationTextureRows;
+  private int locationTextureOffset;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
 
@@ -49,6 +52,8 @@ public class StaticShader extends ShaderProgram {
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
     locationSkyColor = super.getUniformLocation("skyColor");
+    locationTextureRows = super.getUniformLocation("textureRows");
+    locationTextureOffset = super.getUniformLocation("textureOffset");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
   }
@@ -70,10 +75,12 @@ public class StaticShader extends ShaderProgram {
     super.loadFloat(locationFakeLighting, texture.isFakeLighting());
     super.loadFloat(locationReflectivity, texture.getReflectivity());
     super.loadFloat(locationShineDamper, texture.getShineDamper());
+    super.loadFloat(locationTextureRows, texture.getRows());
   }
 
-  public void loadTransformationMatrix(Entity entity) {
+  public void loadEntity(Entity entity) {
     loadTransformationMatrix(new TransformationMatrix(entity.getPosition(), entity.getRotation(), entity.getScale()).toMatrix());
+    super.loadFloat(locationTextureOffset, new Vector2f(entity.getTextureOffsetX(), entity.getTextureOffsetY()));
   }
 
   public void loadTransformationMatrix(Matrix4f matrix) {

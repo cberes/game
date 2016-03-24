@@ -79,7 +79,7 @@ public class Main {
      * player
      */
     final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
-    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 1.0f, fps, new Volume(10, 6), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
+    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
 
     /*
      * lights, camera, ...
@@ -106,10 +106,8 @@ public class Main {
         new ModelTexture(loader.loadTexture("tree")));
     final TexturedModel lowPolyTree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("lowPolyTree")),
         new ModelTexture(loader.loadTexture("lowPolyTree")));
-    final TexturedModel grass = new TexturedModel(loader.loadToVao(ObjFileLoader.load("grassModel")),
-        new ModelTexture(loader.loadTexture("grassTexture"), true, true));
     final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
-        new ModelTexture(loader.loadTexture("fern"), true, true));
+        new ModelTexture(loader.loadTexture("fern"), 2, true, true));
 
     /*
      * terrains
@@ -130,13 +128,17 @@ public class Main {
      */
     final List<Entity> entities = new ArrayList<>();
     entities.add(player);
-    entities.add(new Entity(stall, new Vector3f(0.0f, Terrain.getHeight(terrains, 0.0f, -50.0f), -50.0f), new Vector3f(0.0f, 180.0f, 0.0f), 1.0f));
     final Random rand = new Random();
-    for (int i = 0; i < 1000; ++i) {
+    final int numTrees = 1000;
+    for (int i = 0; i < numTrees; ++i) {
       entities.add(new Entity(tree, position(rand, terrains), new Vector3f().zero(), 3.0f));
       entities.add(new Entity(lowPolyTree, position(rand, terrains), new Vector3f().zero(), 0.4f));
-      entities.add(new Entity(grass, position(rand, terrains), new Vector3f().zero(), 1.0f));
-      entities.add(new Entity(fern, position(rand, terrains), new Vector3f().zero(), 0.6f));
+    }
+    for (int i = 0; i < numTrees * 4; ++i) {
+      entities.add(new Entity(fern, rand.nextInt(4), position(rand, terrains), new Vector3f().zero(), 0.6f));
+    }
+    for (int i = 0; i < 10; ++i) {
+      entities.add(new Entity(stall, position(rand, terrains), new Vector3f(0.0f, rand.nextInt(360), 0.0f), 1.0f));
     }
 
     // Run the rendering loop until the user has attempted to close

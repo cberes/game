@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -80,6 +81,10 @@ public abstract class ShaderProgram implements AutoCloseable {
 
   protected void loadFloat(int location, float value) {
     GL20.glUniform1f(location, value);
+  }
+
+  protected void loadFloat(int location, Vector2f value) {
+    GL20.glUniform2f(location, value.x, value.y);
   }
 
   protected void loadFloat(int location, Vector3f value) {
