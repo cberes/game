@@ -51,6 +51,14 @@ public class Loader implements AutoCloseable {
     return new RawModel(vaoId, indices.length);
   }
 
+  public RawModel loadToVao(float[] positions) {
+    final int vaoId = createVao();
+    vaos.add(vaoId);
+    storeDataInAttributeList(StaticShader.ATTR_POSITION, 2, positions);
+    unbindVao();
+    return new RawModel(vaoId, positions.length / 2);
+  }
+
   public int loadTexture(String filename) throws IOException {
     // Open the PNG file as an InputStream
     InputStream in = new FileInputStream(RES_ROOT + filename + ".png");

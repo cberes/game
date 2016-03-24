@@ -9,7 +9,11 @@ public class ModelTexture {
   private final boolean fakeLighting;
 
   public ModelTexture(int textureId) {
-    this(textureId, false, false);
+    this(textureId, 1);
+  }
+
+  public ModelTexture(int textureId, int rows) {
+    this(textureId, rows, false, false);
   }
 
   public ModelTexture(int textureId, boolean transparent, boolean fakeLighting) {

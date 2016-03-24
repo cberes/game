@@ -14,6 +14,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -24,6 +25,9 @@ import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.Player;
+import net.seabears.game.guis.GuiRenderer;
+import net.seabears.game.guis.GuiShader;
+import net.seabears.game.guis.GuiTexture;
 import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MovementKeys;
@@ -95,6 +99,7 @@ public class Main {
     final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final TerrainShader terrainShader = new TerrainShader();
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
+    final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
     final MasterRenderer master = new MasterRenderer(new Vector3f(0.9f, 0.9f, 1.0f), renderer, terrainRenderer);
 
     /*
@@ -105,7 +110,7 @@ public class Main {
     final TexturedModel tree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("tree")),
         new ModelTexture(loader.loadTexture("tree")));
     final TexturedModel lowPolyTree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("lowPolyTree")),
-        new ModelTexture(loader.loadTexture("lowPolyTree")));
+        new ModelTexture(loader.loadTexture("lowPolyTree"), 2));
     final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
         new ModelTexture(loader.loadTexture("fern"), 2, true, true));
 
@@ -132,7 +137,7 @@ public class Main {
     final int numTrees = 1000;
     for (int i = 0; i < numTrees; ++i) {
       entities.add(new Entity(tree, position(rand, terrains), new Vector3f().zero(), 3.0f));
-      entities.add(new Entity(lowPolyTree, position(rand, terrains), new Vector3f().zero(), 0.4f));
+      entities.add(new Entity(lowPolyTree, rand.nextInt(4), position(rand, terrains), new Vector3f().zero(), 0.4f));
     }
     for (int i = 0; i < numTrees * 4; ++i) {
       entities.add(new Entity(fern, rand.nextInt(4), position(rand, terrains), new Vector3f().zero(), 0.6f));
@@ -140,6 +145,13 @@ public class Main {
     for (int i = 0; i < 10; ++i) {
       entities.add(new Entity(stall, position(rand, terrains), new Vector3f(0.0f, rand.nextInt(360), 0.0f), 1.0f));
     }
+
+    /*
+     * GUIs
+     */
+    List<GuiTexture> guis = new ArrayList<>();
+    guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
+            new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
@@ -165,10 +177,12 @@ public class Main {
 
       // render scene
       master.render(light, camera);
+      guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary
       display.update();
     }
+    guiRenderer.close();
     return master;
   }
 
