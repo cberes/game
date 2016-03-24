@@ -58,11 +58,11 @@ public class MasterRenderer implements AutoCloseable {
     terrains.add(terrain);
   }
 
-  public void render(final Light light, final Camera camera) {
+  public void render(final List<Light> lights, final Camera camera) {
     this.prepare();
     entityRenderer.getShader().start();
     entityRenderer.getShader().loadSky(skyColor);
-    entityRenderer.getShader().loadLight(light);
+    entityRenderer.getShader().loadLights(lights);
     entityRenderer.getShader().loadViewMatrix(camera);
     entityRenderer.render(entities);
     entityRenderer.getShader().stop();
@@ -70,7 +70,7 @@ public class MasterRenderer implements AutoCloseable {
 
     terrainRenderer.getShader().start();
     terrainRenderer.getShader().loadSky(skyColor);
-    terrainRenderer.getShader().loadLight(light);
+    terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadViewMatrix(camera);
     terrainRenderer.render(terrains);
     terrainRenderer.getShader().stop();

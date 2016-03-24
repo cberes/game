@@ -1,6 +1,9 @@
 package net.seabears.game.shaders;
 
+import static java.util.stream.IntStream.range;
+
 import java.io.IOException;
+import java.util.List;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -15,14 +18,16 @@ import net.seabears.game.util.ViewMatrix;
 
 public class StaticShader extends ShaderProgram {
   private static final String SHADER_ROOT = "src/main/shaders/";
+  static final Light OFF_LIGHT = new Light(new Vector3f(), new Vector3f());
 
   public static final int ATTR_POSITION = 0;
   public static final int ATTR_TEXTURE = 1;
   public static final int ATTR_NORMAL = 2;
 
+  private final int lights;
   private int locationFakeLighting;
-  private int locationLightColor;
-  private int locationLightPosition;
+  private int[] locationLightColor;
+  private int[] locationLightPosition;
   private int locationProjectionMatrix;
   private int locationReflectivity;
   private int locationShineDamper;
@@ -32,8 +37,9 @@ public class StaticShader extends ShaderProgram {
   private int locationTransformationMatrix;
   private int locationViewMatrix;
 
-  public StaticShader() throws IOException {
+  public StaticShader(int lights) throws IOException {
     super(SHADER_ROOT + "vertexShader.txt", SHADER_ROOT + "fragmentShader.txt");
+    this.lights = lights;
   }
 
   @Override
@@ -46,8 +52,8 @@ public class StaticShader extends ShaderProgram {
   @Override
   protected void getAllUniformLocations() {
     locationFakeLighting = super.getUniformLocation("fakeLighting");
-    locationLightColor = super.getUniformLocation("lightColor");
-    locationLightPosition = super.getUniformLocation("lightPosition");
+    locationLightColor = super.getUniformLocations("lightColor", lights);
+    locationLightPosition = super.getUniformLocations("lightPosition", lights);
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
@@ -58,9 +64,17 @@ public class StaticShader extends ShaderProgram {
     locationViewMatrix = super.getUniformLocation("viewMatrix");
   }
 
+  public void loadLights(final List<Light> lights) {
+    range(0, this.lights).forEach(i -> loadLight(i < lights.size() ? lights.get(i) : OFF_LIGHT, i));
+  }
+
   public void loadLight(Light light) {
-    super.loadFloat(locationLightColor, light.getColor());
-    super.loadFloat(locationLightPosition, light.getPosition());
+    loadLight(light, 0);
+  }
+
+  private void loadLight(Light light, int index) {
+    super.loadFloat(locationLightColor[index], light.getColor());
+    super.loadFloat(locationLightPosition[index], light.getPosition());
   }
 
   public void loadProjectionMatrix(Matrix4f matrix) {

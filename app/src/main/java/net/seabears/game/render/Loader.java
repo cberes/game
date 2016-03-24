@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GLCapabilities;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import net.seabears.game.models.RawModel;

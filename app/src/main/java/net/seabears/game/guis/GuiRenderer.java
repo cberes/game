@@ -19,6 +19,7 @@ public class GuiRenderer implements AutoCloseable {
   public GuiRenderer(Loader loader, GuiShader shader) {
     this.quad = loader.loadToVao(new float[] {-1, 1, -1, -1, 1, 1, 1, -1});
     this.shader = shader;
+    this.shader.init();
   }
 
   public void render(List<GuiTexture> guis) {

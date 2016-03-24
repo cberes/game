@@ -21,6 +21,7 @@ public class TerrainRenderer {
 
   public TerrainRenderer(TerrainShader shader, Matrix4f projectionMatrix) {
     this.shader = shader;
+    this.shader.init();
     this.shader.start();
     this.shader.loadProjectionMatrix(projectionMatrix);
     this.shader.loadTerrain();

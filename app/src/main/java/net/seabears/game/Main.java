@@ -54,6 +54,7 @@ public class Main {
   private static final float NEAR_PLANE = 0.1f;
   private static final float FAR_PLANE = 1000.0f;
   private static final float GRAVITY = -32.0f;
+  private static final int MAX_LIGHTS = 4;
 
   public void run() {
     final DirectionKeys dirKeys = new DirectionKeys();
@@ -88,16 +89,19 @@ public class Main {
     /*
      * lights, camera, ...
      */
-    final Light light = new Light(new Vector3f(3000.0f, 2000.0f, 2000.0f), new Vector3f(1.0f, 1.0f, 1.0f));
+    final List<Light> lights = new ArrayList<>();
+    lights.add(new Light(new Vector3f(0.0f, 10000.0f, -7000.0f), new Vector3f(1.0f, 1.0f, 1.0f)));
+    lights.add(new Light(new Vector3f(-200.0f, 10.0f, -200.0f), new Vector3f(10.0f, 0.0f, 0.0f)));
+    lights.add(new Light(new Vector3f(200.0f, 10.0f, 200.0f), new Vector3f(0.0f, 0.0f, 10.0f)));
     final Camera camera = new Camera(player);
 
     /*
      * rendering
      */
     final ProjectionMatrix projMatrix = new ProjectionMatrix(display.getWidth(), display.getHeight(), FOV, NEAR_PLANE, FAR_PLANE);
-    final StaticShader shader = new StaticShader();
+    final StaticShader shader = new StaticShader(MAX_LIGHTS);
     final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
-    final TerrainShader terrainShader = new TerrainShader();
+    final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
     final MasterRenderer master = new MasterRenderer(new Vector3f(0.9f, 0.9f, 1.0f), renderer, terrainRenderer);
@@ -176,7 +180,7 @@ public class Main {
       terrains.forEach(master::add);
 
       // render scene
-      master.render(light, camera);
+      master.render(lights, camera);
       guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary

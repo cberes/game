@@ -39,6 +39,9 @@ public abstract class ShaderProgram implements AutoCloseable {
     this.programId = GL20.glCreateProgram();
     GL20.glAttachShader(this.programId, this.vertexShaderId);
     GL20.glAttachShader(this.programId, this.fragmentShaderId);
+  }
+
+  public void init() {
     this.bindAttributes();
     GL20.glLinkProgram(this.programId);
     GL20.glValidateProgram(this.programId);
@@ -49,6 +52,14 @@ public abstract class ShaderProgram implements AutoCloseable {
 
   protected int getUniformLocation(String uniformName) {
     return GL20.glGetUniformLocation(programId, uniformName);
+  }
+
+  protected int[] getUniformLocations(String uniformName, int count) {
+    final int[] locations = new int[count];
+    for (int i = 0; i < count; ++i) {
+      locations[i] = getUniformLocation(uniformName + '[' + i + ']');
+    }
+    return locations;
   }
 
   public void start() {
