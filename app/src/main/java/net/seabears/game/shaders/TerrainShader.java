@@ -1,5 +1,7 @@
 package net.seabears.game.shaders;
 
+import java.io.IOException;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -34,7 +36,7 @@ public class TerrainShader extends ShaderProgram {
   private int locationbTexture;
   private int locationBlendMap;
 
-  public TerrainShader() {
+  public TerrainShader() throws IOException {
     super(SHADER_ROOT + "terrainVertexShader.txt", SHADER_ROOT + "terrainFragmentShader.txt");
   }
 

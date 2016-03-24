@@ -61,9 +61,9 @@ public class Main {
       final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight());
       init(display, dirKeys, movKeys, scrolls, panTilt);
       renderer = loop(display, loader, dirKeys, movKeys, scrolls, panTilt);
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
-      System.exit(4);
+      System.exit(1);
     } finally {
       if (renderer != null) {
         renderer.close();
@@ -104,26 +104,15 @@ public class Main {
         new ModelTexture(loader.loadTexture("stall"), 1.0f, 10.0f));
     final TexturedModel tree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("tree")),
         new ModelTexture(loader.loadTexture("tree")));
+    final TexturedModel lowPolyTree = new TexturedModel(loader.loadToVao(ObjFileLoader.load("lowPolyTree")),
+        new ModelTexture(loader.loadTexture("lowPolyTree")));
     final TexturedModel grass = new TexturedModel(loader.loadToVao(ObjFileLoader.load("grassModel")),
         new ModelTexture(loader.loadTexture("grassTexture"), true, true));
     final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
         new ModelTexture(loader.loadTexture("fern"), true, true));
 
     /*
-     * entities
-     */
-    final List<Entity> entities = new ArrayList<>();
-    entities.add(player);
-    entities.add(new Entity(stall, new Vector3f(0.0f, 0.0f, -50.0f), new Vector3f(0.0f, 180.0f, 0.0f), 1.0f));
-    final Random rand = new Random();
-    for (int i = 0; i < 500; ++i) {
-      entities.add(new Entity(tree, new Vector3f(rand.nextFloat() * 800 - 400, 0, rand.nextFloat() * -600), new Vector3f().zero(), 3.0f));
-      entities.add(new Entity(grass, new Vector3f(rand.nextFloat() * 800 - 400, 0, rand.nextFloat() * -600), new Vector3f().zero(), 1.0f));
-      entities.add(new Entity(fern, new Vector3f(rand.nextFloat() * 800 - 400, 0, rand.nextFloat() * -600), new Vector3f().zero(), 0.6f));
-    }
-
-    /*
-     * terrain
+     * terrains
      */
     final TerrainTexturePack terrainPack = new TerrainTexturePack(
             new TerrainTexture(loader.loadTexture("grass")),
@@ -132,8 +121,23 @@ public class Main {
             new TerrainTexture(loader.loadTexture("tile-path")));
     final TerrainTexture terrainBlend = new TerrainTexture(loader.loadTexture("blend-map"));
     final BufferedImage heightMap = loader.loadImage("heightmap");
-    final Terrain terrain1 = new Terrain(0, -1, loader, terrainPack, terrainBlend, heightMap);
-    final Terrain terrain2 = new Terrain(-1, -1, loader, terrainPack, terrainBlend, heightMap);
+    final List<Terrain> terrains = new ArrayList<>();
+    terrains.add(new Terrain(0, -1, loader, terrainPack, terrainBlend, heightMap));
+    terrains.add(new Terrain(-1, -1, loader, terrainPack, terrainBlend, heightMap));
+
+    /*
+     * entities
+     */
+    final List<Entity> entities = new ArrayList<>();
+    entities.add(player);
+    entities.add(new Entity(stall, new Vector3f(0.0f, Terrain.getHeight(terrains, 0.0f, -50.0f), -50.0f), new Vector3f(0.0f, 180.0f, 0.0f), 1.0f));
+    final Random rand = new Random();
+    for (int i = 0; i < 1000; ++i) {
+      entities.add(new Entity(tree, position(rand, terrains), new Vector3f().zero(), 3.0f));
+      entities.add(new Entity(lowPolyTree, position(rand, terrains), new Vector3f().zero(), 0.4f));
+      entities.add(new Entity(grass, position(rand, terrains), new Vector3f().zero(), 1.0f));
+      entities.add(new Entity(fern, position(rand, terrains), new Vector3f().zero(), 0.6f));
+    }
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
@@ -143,7 +147,7 @@ public class Main {
       fps.update();
 
       // move player
-      player.move(mov, 0.0f);
+      player.move(mov, (x, z) -> Terrain.getHeight(terrains, x, z));
 
       // move camera (after player)
       currentScrolls.clear();
@@ -155,8 +159,7 @@ public class Main {
 
       // add entities
       entities.forEach(master::add);
-      master.add(terrain1);
-      master.add(terrain2);
+      terrains.forEach(master::add);
 
       // render scene
       master.render(light, camera);
@@ -165,6 +168,12 @@ public class Main {
       display.update();
     }
     return master;
+  }
+
+  private static Vector3f position(Random rand, List<Terrain> terrains) {
+    final float x = rand.nextFloat() * 1600 - 800;
+    final float z = rand.nextFloat() * -800;
+    return new Vector3f(x, Terrain.getHeight(terrains, x, z), z);
   }
 
   private void init(final DisplayManager display, final DirectionKeys dir, final MovementKeys mov, final Queue<Scroll> scrolls, final CameraPanTilt panTilt) {

@@ -1,5 +1,7 @@
 package net.seabears.game.entities;
 
+import java.util.function.BiFunction;
+
 import org.joml.Vector3f;
 
 import net.seabears.game.input.MovementKeys;
@@ -32,7 +34,7 @@ public class Player extends Entity {
     return size;
   }
 
-  public void move(final MovementKeys keys, final float terrainHeight) {
+  public void move(final MovementKeys keys, final BiFunction<Float, Float, Float> terrainHeight) {
     float currentSpeed = 0;
     if (keys.forward.get()) {
       currentSpeed += runSpeed;
@@ -73,8 +75,9 @@ public class Player extends Entity {
     super.increasePosition(new Vector3f(dx, dy, dz));
 
     // ensure we're not below the terrain
-    if (getPosition().y < terrainHeight) {
-      getPosition().y = terrainHeight;
+    final float height = terrainHeight.apply(getPosition().x, getPosition().z);
+    if (getPosition().y < height) {
+      getPosition().y = height;
       upwardsSpeed = 0.0f; // stop falling
       inAir = false; // at terrain level
     }

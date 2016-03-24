@@ -1,5 +1,7 @@
 package net.seabears.game.shaders;
 
+import java.io.IOException;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -27,7 +29,7 @@ public class StaticShader extends ShaderProgram {
   private int locationTransformationMatrix;
   private int locationViewMatrix;
 
-  public StaticShader() {
+  public StaticShader() throws IOException {
     super(SHADER_ROOT + "vertexShader.txt", SHADER_ROOT + "fragmentShader.txt");
   }
 

@@ -1,13 +1,17 @@
 package net.seabears.game.terrains;
 
 import java.awt.image.BufferedImage;
+import java.util.List;
+import java.util.Optional;
 
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
+import net.seabears.game.util.Barycentric;
 
 public class Terrain {
   private static final double HALF_MAX_PIXEL_COLOR = Math.pow(2, 23);
@@ -18,6 +22,7 @@ public class Terrain {
   private final RawModel model;
   private final TerrainTexturePack texture;
   private final TerrainTexture blendMap;
+  private final float[][] heights;
 
   public Terrain(float x, float z, Loader loader, TerrainTexturePack texture, TerrainTexture blendMap, BufferedImage heightMap) {
     this(800, 40, x, z, loader, texture, blendMap, heightMap);
@@ -28,7 +33,9 @@ public class Terrain {
     this.maxHeight = maxHeight;
     this.x = x * size;
     this.z = z * size;
-    this.model = generateTerrain(loader, heightMap);
+    final int vertexCount = heightMap.getHeight();
+    this.heights = new float[vertexCount][vertexCount];
+    this.model = generateTerrain(loader, heightMap, vertexCount);
     this.texture = texture;
     this.blendMap = blendMap;
   }
@@ -53,8 +60,40 @@ public class Terrain {
     return blendMap;
   }
 
-  private final RawModel generateTerrain(Loader loader, BufferedImage heightMap) {
-    final int vertexCount = heightMap.getHeight();
+  public static float getHeight(List<Terrain> terrains, final float x, final float z) {
+    return terrains.stream()
+        .filter(t -> x - t.x >= 0 && x - t.x < t.size)
+        .filter(t -> z - t.z >= 0 && z - t.z < t.size)
+        .findFirst()
+        .flatMap(t -> Optional.of(t.getHeight(x, z)))
+        .orElse(0.0f);
+  }
+
+  public float getHeight(float x, float z) {
+    final float tx = x - this.x;
+    final float tz = z - this.z;
+    final float gridSquareSize = (float) size / (heights.length - 1);
+    final int gx = (int) Math.floor(tx / gridSquareSize);
+    final int gz = (int) Math.floor(tz / gridSquareSize);
+    if (gx < 0 || gx >= heights.length - 1 || gz < 0 || gz >= heights.length - 1) {
+      return 0.0f;
+    }
+    final float xc = (tx % gridSquareSize) / gridSquareSize;
+    final float zc = (tz % gridSquareSize) / gridSquareSize;
+    if (xc <= (1 - zc)) {
+      return Barycentric.get(new Vector3f(0, heights[gx][gz], 0),
+                             new Vector3f(1, heights[gx + 1][gz], 0),
+                             new Vector3f(0, heights[gx][gz + 1], 1),
+                             new Vector2f(xc, zc));
+    } else {
+      return Barycentric.get(new Vector3f(1, heights[gx + 1][gz], 0),
+                             new Vector3f(1, heights[gx + 1][gz + 1], 1),
+                             new Vector3f(0, heights[gx][gz + 1], 1),
+                             new Vector2f(xc, zc));
+    }
+  }
+
+  private final RawModel generateTerrain(Loader loader, BufferedImage heightMap, int vertexCount) {
     final int count = vertexCount * vertexCount;
     float[] vertices = new float[count * 3];
     float[] normals = new float[count * 3];
@@ -63,8 +102,9 @@ public class Terrain {
     int vertexPointer = 0;
     for (int i = 0; i < vertexCount; i++) {
       for (int j = 0; j < vertexCount; j++) {
+        heights[j][i] = getHeight(j, i, heightMap);
         vertices[vertexPointer * 3] = (float) j / ((float) vertexCount - 1) * size;
-        vertices[vertexPointer * 3 + 1] = getHeight(j, i, heightMap);
+        vertices[vertexPointer * 3 + 1] = heights[j][i];
         vertices[vertexPointer * 3 + 2] = (float) i / ((float) vertexCount - 1) * size;
         final Vector3f normal = getNormal(j, i, heightMap);
         normals[vertexPointer * 3] = normal.x;

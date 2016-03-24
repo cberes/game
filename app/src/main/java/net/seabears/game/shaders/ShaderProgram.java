@@ -14,34 +14,25 @@ import org.lwjgl.opengl.GL20;
 public abstract class ShaderProgram implements AutoCloseable {
   private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
-  private static int loadShader(String file, int type) {
+  private static int loadShader(String file, int type) throws IOException {
     int shaderId = GL20.glCreateShader(type);
     GL20.glShaderSource(shaderId, readFile(file));
     GL20.glCompileShader(shaderId);
     if (GL20.glGetShaderi(shaderId, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
-      System.err.println(GL20.glGetShaderInfoLog(shaderId, 500));
-      System.err.println("Could not compile shader");
-      System.exit(3);
+      throw new IllegalStateException("Could not compile shader. " + GL20.glGetShaderInfoLog(shaderId, 500));
     }
     return shaderId;
   }
 
-  private static String readFile(String file) {
-    try {
-      return new String(Files.readAllBytes(Paths.get(file)));
-    } catch (IOException e) {
-      System.err.println("Could not read shader");
-      e.printStackTrace();
-      System.exit(2);
-      return null; // dumb
-    }
+  private static String readFile(String file) throws IOException {
+    return new String(Files.readAllBytes(Paths.get(file)));
   }
 
   private final int programId;
   private final int vertexShaderId;
   private final int fragmentShaderId;
 
-  public ShaderProgram(String vertexFile, String fragmentFile) {
+  public ShaderProgram(String vertexFile, String fragmentFile) throws IOException {
     this.vertexShaderId = loadShader(vertexFile, GL20.GL_VERTEX_SHADER);
     this.fragmentShaderId = loadShader(fragmentFile, GL20.GL_FRAGMENT_SHADER);
     this.programId = GL20.glCreateProgram();
