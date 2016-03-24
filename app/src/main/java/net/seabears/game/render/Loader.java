@@ -1,5 +1,7 @@
 package net.seabears.game.render;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -23,9 +27,14 @@ import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.ModelData;
 
 public class Loader implements AutoCloseable {
+  private static final String RES_ROOT = "src/main/res/";
   private final List<Integer> vaos = new ArrayList<>();
   private final List<Integer> vbos = new ArrayList<>();
   private final List<Integer> textures = new ArrayList<>();
+
+  public BufferedImage loadImage(String filename) throws IOException {
+    return ImageIO.read(new File(RES_ROOT + filename + ".png"));
+  }
 
   public RawModel loadToVao(ModelData data) {
       return loadToVao(data.getVertices(), data.getTextureCoords(), data.getNormals(), data.getIndices());
@@ -42,32 +51,22 @@ public class Loader implements AutoCloseable {
     return new RawModel(vaoId, indices.length);
   }
 
-  public int loadTexture(String filename) {
-    ByteBuffer buf = null;
-    int tWidth = 0;
-    int tHeight = 0;
+  public int loadTexture(String filename) throws IOException {
+    // Open the PNG file as an InputStream
+    InputStream in = new FileInputStream(RES_ROOT + filename + ".png");
+    // Link the PNG decoder to this stream
+    PNGDecoder decoder = new PNGDecoder(in);
 
-    try {
-      // Open the PNG file as an InputStream
-      InputStream in = new FileInputStream("src/main/res/" + filename + ".png");
-      // Link the PNG decoder to this stream
-      PNGDecoder decoder = new PNGDecoder(in);
+    // Get the width and height of the texture
+    final int tWidth = decoder.getWidth();
+    final int tHeight = decoder.getHeight();
 
-      // Get the width and height of the texture
-      tWidth = decoder.getWidth();
-      tHeight = decoder.getHeight();
+    // Decode the PNG file in a ByteBuffer
+    final ByteBuffer buf = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
+    decoder.decode(buf, decoder.getWidth() * 4, PNGDecoder.Format.RGBA);
+    buf.flip();
 
-      // Decode the PNG file in a ByteBuffer
-      buf = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
-      decoder.decode(buf, decoder.getWidth() * 4, PNGDecoder.Format.RGBA);
-      buf.flip();
-
-      in.close();
-    } catch (IOException e) {
-      System.err.println("Could not load image");
-      e.printStackTrace();
-      System.exit(4);
-    }
+    in.close();
 
     // Create a new texture object in memory and bind it
     final int texId = GL11.glGenTextures();

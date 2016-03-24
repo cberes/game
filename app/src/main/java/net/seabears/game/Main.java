@@ -3,6 +3,8 @@ package net.seabears.game;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,6 +61,9 @@ public class Main {
       final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight());
       init(display, dirKeys, movKeys, scrolls, panTilt);
       renderer = loop(display, loader, dirKeys, movKeys, scrolls, panTilt);
+    } catch (IOException e) {
+      e.printStackTrace();
+      System.exit(4);
     } finally {
       if (renderer != null) {
         renderer.close();
@@ -67,7 +72,7 @@ public class Main {
     }
   }
 
-  private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) {
+  private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
     final FpsCalc fps = new FpsCalc();
 
     /*
@@ -126,8 +131,9 @@ public class Main {
             new TerrainTexture(loader.loadTexture("grass-flowers")),
             new TerrainTexture(loader.loadTexture("tile-path")));
     final TerrainTexture terrainBlend = new TerrainTexture(loader.loadTexture("blend-map"));
-    final Terrain terrain1 = new Terrain(0, -1, loader, terrainPack, terrainBlend);
-    final Terrain terrain2 = new Terrain(-1, -1, loader, terrainPack, terrainBlend);
+    final BufferedImage heightMap = loader.loadImage("heightmap");
+    final Terrain terrain1 = new Terrain(0, -1, loader, terrainPack, terrainBlend, heightMap);
+    final Terrain terrain2 = new Terrain(-1, -1, loader, terrainPack, terrainBlend, heightMap);
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
