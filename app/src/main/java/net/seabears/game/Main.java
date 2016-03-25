@@ -12,6 +12,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joml.Vector2f;
@@ -46,6 +47,7 @@ import net.seabears.game.terrains.TerrainShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
+import net.seabears.game.util.DayNightCycle;
 import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
@@ -57,6 +59,7 @@ public class Main {
   private static final float FAR_PLANE = 1000.0f;
   private static final float GRAVITY = -32.0f;
   private static final float SKYBOX_SIZE = 500.0f;
+  private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
   private static final int MAX_LIGHTS = 4;
 
   public void run() {
@@ -82,6 +85,7 @@ public class Main {
 
   private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
     final FpsCalc fps = new FpsCalc();
+    final DayNightCycle cycle = new DayNightCycle(DAY_LENGTH_MS, TimeUnit.MILLISECONDS, () -> System.currentTimeMillis());
 
     /*
      * player
@@ -93,10 +97,10 @@ public class Main {
      * lights, camera, ...
      */
     final List<Light> lights = new ArrayList<>();
-    lights.add(new Light(new Vector3f(0.0f, 10000.0f, -7000.0f), new Vector3f(1.0f, 1.0f, 1.0f)));
-    lights.add(new Light(new Vector3f(185.0f, 10.0f, -293.0f), new Vector3f(2.0f, 0.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
-    lights.add(new Light(new Vector3f(370.0f, 17.0f, -300.0f), new Vector3f(0.0f, 2.0f, 2.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
-    lights.add(new Light(new Vector3f(293.0f,  7.0f, -305.0f), new Vector3f(2.0f, 2.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
+    lights.add(new Light(new Vector3f(0.0f, 10000.0f, -7000.0f), new Vector3f(1.0f), () -> Math.max(cycle.ratio(), 0.2f)));
+    lights.add(new Light(new Vector3f(185.0f, 10.0f, -293.0f), new Vector3f(2.0f, 0.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
+    lights.add(new Light(new Vector3f(370.0f, 17.0f, -300.0f), new Vector3f(0.0f, 2.0f, 2.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
+    lights.add(new Light(new Vector3f(293.0f,  7.0f, -305.0f), new Vector3f(2.0f, 2.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
     final Camera camera = new Camera(player);
 
     /*
@@ -107,9 +111,12 @@ public class Main {
     final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
-    final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader, new SkyboxShader(), projMatrix.toMatrix(), SKYBOX_SIZE, SkyboxRenderer.loadCube(loader, "skybox/"));
+    final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader,
+        new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
+        SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
+        SkyboxRenderer.loadCube(loader, "skybox-night/"));
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
-    final MasterRenderer master = new MasterRenderer(new Vector3f(0, 50, 0).div(255), renderer, terrainRenderer, skyboxRenderer);
+    final MasterRenderer master = new MasterRenderer(new Vector3f(0.5f), renderer, terrainRenderer, skyboxRenderer);
 
     /*
      * models
@@ -190,7 +197,7 @@ public class Main {
       terrains.forEach(master::add);
 
       // render scene
-      master.render(lights, camera);
+      master.render(lights, camera, cycle);
       guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary

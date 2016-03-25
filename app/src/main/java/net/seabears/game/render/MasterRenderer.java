@@ -15,6 +15,7 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.terrains.TerrainRenderer;
+import net.seabears.game.util.DayNightCycle;
 
 public class MasterRenderer implements AutoCloseable {
   public static void enableCulling() {
@@ -62,7 +63,7 @@ public class MasterRenderer implements AutoCloseable {
     terrains.add(terrain);
   }
 
-  public void render(final List<Light> lights, final Camera camera) {
+  public void render(final List<Light> lights, final Camera camera, final DayNightCycle cycle) {
     this.prepare();
 
     // entities
@@ -82,7 +83,7 @@ public class MasterRenderer implements AutoCloseable {
     terrainRenderer.getShader().stop();
 
     // skybox
-    skyboxRenderer.render(camera);
+    skyboxRenderer.render(camera, skyColor, cycle.ratio());
 
     // clear stuff
     entities.clear();
