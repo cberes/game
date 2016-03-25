@@ -53,11 +53,8 @@ public class Camera {
     distance = Math.max(player.getSize().getWidth() * 2.0, distance - scroll.getY());
   }
 
-  public void pan(MousePosition pos) {
+  public void panTilt(MousePosition pos) {
     angle -= pos.getX() * 2.0;
-  }
-
-  public void tilt(MousePosition pos) {
     pitch = (float) Math.min(90.0, Math.max(0.0, pitch - pos.getY()));
   }
 

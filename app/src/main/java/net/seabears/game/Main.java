@@ -13,7 +13,6 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -31,6 +30,7 @@ import net.seabears.game.guis.GuiShader;
 import net.seabears.game.guis.GuiTexture;
 import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
+import net.seabears.game.input.MouseButton;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.input.Scroll;
 import net.seabears.game.models.TexturedModel;
@@ -69,7 +69,7 @@ public class Main {
     final BlockingQueue<Scroll> scrolls = new LinkedBlockingDeque<>();
     MasterRenderer renderer = null;
     try (DisplayManager display = new DisplayManager("Game Engine", 800, 600)) {
-      final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight());
+      final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight(), MouseButton.RIGHT);
       init(display, dirKeys, movKeys, scrolls, panTilt);
       renderer = loop(display, loader, dirKeys, movKeys, scrolls, panTilt);
     } catch (Exception e) {
@@ -188,8 +188,7 @@ public class Main {
       currentScrolls.clear();
       scrolls.drainTo(currentScrolls);
       currentScrolls.forEach(camera::zoom);
-      camera.pan(panTilt.get());
-      camera.tilt(panTilt.get());
+      camera.panTilt(panTilt.get());
       camera.move();
 
       // add entities
@@ -255,24 +254,28 @@ public class Main {
         if (key == GLFW_KEY_A) {
           mov.left.set(active);
         }
-        mov.jump.set(key == GLFW_KEY_SPACE && action == GLFW_PRESS);
+
+        // actions
+        if (key == GLFW_KEY_SPACE) {
+          mov.jump.set(action == GLFW_PRESS);
+        }
       }
     });
 
     /*
      * Mouse callbacks
      */
-    final AtomicBoolean rightMbPressed = new AtomicBoolean();
     display.setMouseButtonCallback(new GLFWMouseButtonCallback() {
       @Override
       public void invoke(long window, int button, int action, int mods) {
-        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-          if (action == GLFW_RELEASE) {
-            rightMbPressed.set(false);
-            panTilt.reset();
-          } else {
-            rightMbPressed.set(true);
-          }
+        final boolean pressed = action != GLFW_RELEASE;
+        switch (button) {
+          case GLFW_MOUSE_BUTTON_LEFT:
+            MouseButton.LEFT.setPressed(pressed);
+            break;
+          case GLFW_MOUSE_BUTTON_RIGHT:
+            MouseButton.RIGHT.setPressed(pressed);
+            break;
         }
       }
     });
@@ -280,9 +283,8 @@ public class Main {
     display.setCursorPosCallback(new GLFWCursorPosCallback() {
       @Override
       public void invoke(long window, double xpos, double ypos) {
-        if (rightMbPressed.get()) {
-          panTilt.set((int) xpos, (int) ypos);
-        }
+        MouseButton.LEFT.setPosition((int) xpos, (int) ypos);
+        MouseButton.RIGHT.setPosition((int) xpos, (int) ypos);
       }
     });
 
