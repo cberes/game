@@ -17,4 +17,8 @@ public class MousePosition {
   public double getY() {
     return y;
   }
+
+  public MousePosition normalize(int w, int h) {
+    return new MousePosition(2.0f * x / w - 1, 2.0f * y / h - 1);
+  }
 }

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
@@ -33,6 +34,7 @@ import net.seabears.game.guis.GuiTexture;
 import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.MouseButton;
+import net.seabears.game.input.MousePicker;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.input.Scroll;
 import net.seabears.game.models.TexturedModel;
@@ -176,6 +178,8 @@ public class Main {
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
             new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
 
+    final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
+
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
     final List<Scroll> currentScrolls = new LinkedList<>();
@@ -192,6 +196,13 @@ public class Main {
       currentScrolls.forEach(camera::zoom);
       camera.panTilt(panTilt.get());
       camera.move();
+
+      // update mouse picker after camera has moved
+      mousePicker.update(display.getWidth(), display.getHeight());
+      mousePicker.findTerrainPoint(terrains, 600).flatMap(p -> {
+        entities.get(1).place(p);
+        return Optional.empty();
+      });
 
       // add entities
       entities.forEach(master::add);

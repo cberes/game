@@ -60,13 +60,19 @@ public class Terrain {
     return blendMap;
   }
 
-  public static float getHeight(List<Terrain> terrains, final float x, final float z) {
+  public static Optional<Terrain> find(List<Terrain> terrains, final float x, final float z) {
     return terrains.stream()
         .filter(t -> x - t.x >= 0 && x - t.x < t.size)
         .filter(t -> z - t.z >= 0 && z - t.z < t.size)
-        .findFirst()
-        .flatMap(t -> Optional.of(t.getHeight(x, z)))
-        .orElse(0.0f);
+        .findFirst();
+  }
+
+  public static float getHeight(Optional<Terrain> terrain, final float x, final float z) {
+    return terrain.flatMap(t -> Optional.of(t.getHeight(x, z))).orElse(0.0f);
+  }
+
+  public static float getHeight(List<Terrain> terrains, final float x, final float z) {
+    return getHeight(find(terrains, x, z), x, z);
   }
 
   public float getHeight(float x, float z) {

@@ -12,16 +12,6 @@ public class CameraPanTilt {
   }
 
   public MousePosition get() {
-    if (mouse.isPressed()) {
-      final MousePosition pos = mouse.getPosition();
-      return new MousePosition(normalize(pos.getX(), w), normalize(pos.getY(), h));
-    } else {
-      return MousePosition.ZERO;
-    }
-  }
-
-  /** Returns value from 0.5 to -0.5 */
-  private static double normalize(double x, int range) {
-    return (x - range / 2.0) / range;
+    return mouse.isPressed() ? mouse.getPosition().normalize(w, h) : MousePosition.ZERO;
   }
 }

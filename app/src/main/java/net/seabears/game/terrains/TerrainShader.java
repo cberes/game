@@ -108,7 +108,7 @@ public class TerrainShader extends ShaderProgram {
   }
 
   public void loadTransformationMatrix(Terrain terrain) {
-    loadTransformationMatrix(new TransformationMatrix(new Vector3f(terrain.getX(), 0.0f, terrain.getZ()), new Vector3f().zero(), 1.0f).toMatrix());
+    loadTransformationMatrix(new TransformationMatrix(new Vector3f(terrain.getX(), 0.0f, terrain.getZ()), new Vector3f(), 1.0f).toMatrix());
   }
 
   public void loadTransformationMatrix(Matrix4f matrix) {

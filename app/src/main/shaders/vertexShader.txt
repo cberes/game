@@ -22,10 +22,16 @@ out vec3 toLightVector[4];
 out float visibility;
 
 void main(void) {
-	// convert vec3 to vec4
+	// move vertices relative to world origin (world coordinates)
 	vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
+	// move vertices relative to the camera (eye space)
 	vec4 positionRelativeToCamera = viewMatrix * worldPosition;
+	// add perspective (scale distance objects, give world a frustrum shape)
 	gl_Position = projectionMatrix * positionRelativeToCamera;
+
+	// Then, OpenGL converts coordinates to its space (perspective division)
+	// Finally, OpenGL converts those coordinates to 2D pixels on the screen (viewport)
+
 	pass_textureCoords = textureCoords / textureRows + textureOffset;
 
 	vec3 realNormal = normal;

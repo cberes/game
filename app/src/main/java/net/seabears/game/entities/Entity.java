@@ -21,11 +21,19 @@ public class Entity {
     this.rotation = rotation;
     this.scale = scale;
     this.light = light;
+    this.updateLight();
+  }
 
+  private final void updateLight() {
     // move light to this entity
     if (light != null) {
-      light.getLight().getPosition().zero().add(position).add(new Vector3f(scale).mul(light.getOffset()));
+      light.getLight().getPosition().set(position).add(new Vector3f(scale).mul(light.getOffset()));
     }
+  }
+
+  public void place(Vector3f position) {
+    this.position.set(position);
+    this.updateLight();
   }
 
   public void increasePosition(Vector3f delta) {
