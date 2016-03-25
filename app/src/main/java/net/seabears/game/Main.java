@@ -43,6 +43,7 @@ import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.EntityRenderer;
 import net.seabears.game.shaders.StaticShader;
+import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.skybox.SkyboxShader;
 import net.seabears.game.terrains.Terrain;
@@ -65,6 +66,7 @@ public class Main {
   private static final float SKYBOX_SIZE = 500.0f;
   private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
   private static final int MAX_LIGHTS = 4;
+  private static final float MAX_TERRAIN_RANGE = 600.0f;
 
   public void run() {
     final DirectionKeys dirKeys = new DirectionKeys();
@@ -90,6 +92,7 @@ public class Main {
   private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
     final FpsCalc fps = new FpsCalc();
     final DayNightCycle cycle = new DayNightCycle(DAY_LENGTH_MS, TimeUnit.MILLISECONDS, () -> System.currentTimeMillis());
+    final Skybox skybox = new Skybox(cycle);
 
     /*
      * player
@@ -199,17 +202,13 @@ public class Main {
 
       // update mouse picker after camera has moved
       mousePicker.update(display.getWidth(), display.getHeight());
-      mousePicker.findTerrainPoint(terrains, 600).flatMap(p -> {
+      mousePicker.findTerrainPoint(terrains, MAX_TERRAIN_RANGE).flatMap(p -> {
         entities.get(1).place(p);
         return Optional.empty();
       });
 
-      // add entities
-      entities.forEach(master::add);
-      terrains.forEach(master::add);
-
       // render scene
-      master.render(lights, camera, cycle);
+      master.render(entities, terrains, lights, skybox, camera);
       guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary

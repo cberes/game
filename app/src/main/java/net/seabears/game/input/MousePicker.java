@@ -31,7 +31,6 @@ public class MousePicker {
   public void update(int w, int h) {
     if (mouse.isPressed()) {
       currentRay.set(calculateMouseRay(w, h, new ViewMatrix(camera).toMatrix().invert()));
-      System.out.println(currentRay.x + ", " + currentRay.y + ", " + currentRay.z);
     }
   }
 

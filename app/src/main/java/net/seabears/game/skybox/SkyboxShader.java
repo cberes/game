@@ -18,8 +18,8 @@ public class SkyboxShader extends ShaderProgram {
   private int locationBlendFactor;
   private int locationCubeMapDay;
   private int locationCubeMapNight;
-  private int locationFogColor;
   private int locationProjectionMatrix;
+  private int locationSkyColor;
   private int locationViewMatrix;
 
   public SkyboxShader(FpsCalc fps, float rotationSpeed) throws IOException {
@@ -33,8 +33,8 @@ public class SkyboxShader extends ShaderProgram {
     locationBlendFactor = super.getUniformLocation("blendFactor");
     locationCubeMapDay = super.getUniformLocation("cubeMapDay");
     locationCubeMapNight = super.getUniformLocation("cubeMapNight");
-    locationFogColor = super.getUniformLocation("fogColor");
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
+    locationSkyColor = super.getUniformLocation("fogColor");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
   }
 
@@ -52,8 +52,8 @@ public class SkyboxShader extends ShaderProgram {
     super.loadInt(locationCubeMapNight, 1);
   }
 
-  public void loadFogColor(Vector3f color) {
-    super.loadFloat(locationFogColor, color);
+  public void loadSky(Vector3f color) {
+    super.loadFloat(locationSkyColor, color);
   }
 
   public void loadProjectionMatrix(Matrix4f matrix) {

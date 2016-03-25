@@ -12,10 +12,10 @@ import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
 import net.seabears.game.models.TexturedModel;
+import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.terrains.TerrainRenderer;
-import net.seabears.game.util.DayNightCycle;
 
 public class MasterRenderer implements AutoCloseable {
   public static void enableCulling() {
@@ -33,7 +33,6 @@ public class MasterRenderer implements AutoCloseable {
   private final TerrainRenderer terrainRenderer;
   private final SkyboxRenderer skyboxRenderer;
   private final Map<TexturedModel, List<Entity>> entities;
-  private final List<Terrain> terrains;
 
   public MasterRenderer(Vector3f skyColor, EntityRenderer renderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer) {
     this.skyColor = skyColor;
@@ -41,7 +40,6 @@ public class MasterRenderer implements AutoCloseable {
     this.terrainRenderer = terrainRenderer;
     this.skyboxRenderer = skyboxRenderer;
     this.entities = new HashMap<>();
-    this.terrains = new ArrayList<>();
     enableCulling();
   }
 
@@ -59,35 +57,36 @@ public class MasterRenderer implements AutoCloseable {
     entities.get(model).add(entity);
   }
 
-  public void add(Terrain terrain) {
-    terrains.add(terrain);
+  public void render(List<Entity> entities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera) {
+    entities.forEach(this::add);
+    prepare();
+    render(terrains, lights, skybox, camera);
+    this.entities.clear();
   }
 
-  public void render(final List<Light> lights, final Camera camera, final DayNightCycle cycle) {
-    this.prepare();
-
+  private void render(List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera) {
     // entities
     entityRenderer.getShader().start();
-    entityRenderer.getShader().loadSky(skyColor);
     entityRenderer.getShader().loadLights(lights);
+    entityRenderer.getShader().loadSky(skyColor);
     entityRenderer.getShader().loadViewMatrix(camera);
     entityRenderer.render(entities);
     entityRenderer.getShader().stop();
 
     // terrain
     terrainRenderer.getShader().start();
-    terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadLights(lights);
+    terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadViewMatrix(camera);
     terrainRenderer.render(terrains);
     terrainRenderer.getShader().stop();
 
     // skybox
-    skyboxRenderer.render(camera, skyColor, cycle.ratio());
-
-    // clear stuff
-    entities.clear();
-    terrains.clear();
+    skyboxRenderer.getShader().start();
+    skyboxRenderer.getShader().loadSky(skyColor);
+    skyboxRenderer.getShader().loadViewMatrix(camera);
+    skyboxRenderer.render(skybox);
+    skyboxRenderer.getShader().stop();
   }
 
   @Override
