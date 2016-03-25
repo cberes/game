@@ -5,7 +5,6 @@ import java.util.function.BiFunction;
 import org.joml.Vector3f;
 
 import net.seabears.game.input.MovementKeys;
-import net.seabears.game.models.TexturedModel;
 import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.Volume;
 
@@ -19,7 +18,7 @@ public class Player extends Entity {
   private float upwardsSpeed;
   private boolean inAir;
 
-  public Player(TexturedModel model, Vector3f position, Vector3f rotation, float scale, FpsCalc fps,
+  public Player(EntityTexture model, Vector3f position, Vector3f rotation, float scale, FpsCalc fps,
       Volume size, float runSpeed, float turnSpeed, float jumpPower, float gravity) {
     super(model, position, rotation, scale);
     this.fps = fps;

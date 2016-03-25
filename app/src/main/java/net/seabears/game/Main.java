@@ -23,6 +23,8 @@ import org.lwjgl.glfw.GLFWScrollCallback;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
+import net.seabears.game.entities.EntityLight;
+import net.seabears.game.entities.EntityTexture;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.Player;
 import net.seabears.game.guis.GuiRenderer;
@@ -91,16 +93,16 @@ public class Main {
      * player
      */
     final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
-    final Player player = new Player(playerModel, new Vector3f(0, 0, -40), new Vector3f().zero(), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
+    final Player player = new Player(new EntityTexture(playerModel), new Vector3f(0, 0, -40), new Vector3f(0.0f, 180.0f, 0.0f), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
 
     /*
      * lights, camera, ...
      */
     final List<Light> lights = new ArrayList<>();
     lights.add(new Light(new Vector3f(0.0f, 10000.0f, -7000.0f), new Vector3f(1.0f), () -> Math.max(cycle.ratio(), 0.2f)));
-    lights.add(new Light(new Vector3f(185.0f, 10.0f, -293.0f), new Vector3f(2.0f, 0.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
-    lights.add(new Light(new Vector3f(370.0f, 17.0f, -300.0f), new Vector3f(0.0f, 2.0f, 2.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
-    lights.add(new Light(new Vector3f(293.0f,  7.0f, -305.0f), new Vector3f(2.0f, 2.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
+    lights.add(new Light(new Vector3f(), new Vector3f(2.0f, 0.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
+    lights.add(new Light(new Vector3f(), new Vector3f(0.0f, 2.0f, 2.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
+    lights.add(new Light(new Vector3f(), new Vector3f(2.0f, 2.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f)));
     final Camera camera = new Camera(player);
 
     /*
@@ -153,18 +155,18 @@ public class Main {
     entities.add(player);
     final Random rand = new Random();
     final int numTrees = 1000;
-    entities.add(new Entity(lamp, new Vector3f(185.0f, -4.7f, -293.0f), new Vector3f(), 1.0f));
-    entities.add(new Entity(lamp, new Vector3f(370.0f,  4.2f, -300.0f), new Vector3f(), 1.0f));
-    entities.add(new Entity(lamp, new Vector3f(293.0f, -6.8f, -305.0f), new Vector3f(), 1.0f));
+    entities.add(new Entity(new EntityTexture(lamp), new Vector3f(185.0f, -4.7f, -293.0f), new Vector3f(), 1.0f, new EntityLight(lights.get(1), new Vector3f(0.0f, 10.0f, 0.0f))));
+    entities.add(new Entity(new EntityTexture(lamp), new Vector3f(370.0f,  4.2f, -300.0f), new Vector3f(), 1.0f, new EntityLight(lights.get(2), new Vector3f(0.0f, 10.0f, 0.0f))));
+    entities.add(new Entity(new EntityTexture(lamp), new Vector3f(293.0f, -6.8f, -305.0f), new Vector3f(), 1.0f, new EntityLight(lights.get(3), new Vector3f(0.0f, 10.0f, 0.0f))));
     for (int i = 0; i < numTrees; ++i) {
-      entities.add(new Entity(tree, position(rand, terrains), new Vector3f(), 0.8f));
-      entities.add(new Entity(lowPolyTree, rand.nextInt(4), position(rand, terrains), new Vector3f(), 0.4f));
+      entities.add(new Entity(new EntityTexture(tree), position(rand, terrains), new Vector3f(), 0.8f));
+      entities.add(new Entity(new EntityTexture(lowPolyTree, rand.nextInt(4)), position(rand, terrains), new Vector3f(), 0.4f));
     }
     for (int i = 0; i < numTrees * 4; ++i) {
-      entities.add(new Entity(fern, rand.nextInt(4), position(rand, terrains), new Vector3f(), 0.6f));
+      entities.add(new Entity(new EntityTexture(fern, rand.nextInt(4)), position(rand, terrains), new Vector3f(), 0.6f));
     }
     for (int i = 0; i < 10; ++i) {
-      entities.add(new Entity(stall, position(rand, terrains), new Vector3f(0.0f, rand.nextInt(360), 0.0f), 1.0f));
+      entities.add(new Entity(new EntityTexture(stall), position(rand, terrains), new Vector3f(0.0f, rand.nextInt(360), 0.0f), 1.0f));
     }
 
     /*
