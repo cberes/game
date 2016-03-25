@@ -1,4 +1,4 @@
-package net.seabears.game.shaders;
+package net.seabears.game.terrains;
 
 import static java.util.stream.IntStream.range;
 
@@ -10,7 +10,8 @@ import org.joml.Vector3f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
-import net.seabears.game.terrains.Terrain;
+import net.seabears.game.shaders.ShaderProgram;
+import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
@@ -21,8 +22,6 @@ public class TerrainShader extends ShaderProgram {
   public static final int TEXTURE_UNIT_G = 2;
   public static final int TEXTURE_UNIT_B = 3;
   public static final int TEXTURE_UNIT_BLEND = 4;
-
-  private static final String SHADER_ROOT = "src/main/shaders/";
 
   private final int lights;
   private int locationFakeLighting;
@@ -42,7 +41,7 @@ public class TerrainShader extends ShaderProgram {
   private int locationBlendMap;
 
   public TerrainShader(int lights) throws IOException {
-    super(SHADER_ROOT + "terrainVertexShader.txt", SHADER_ROOT + "terrainFragmentShader.txt");
+    super(SHADER_ROOT + "terrain/");
     this.lights = lights;
   }
 
@@ -73,7 +72,7 @@ public class TerrainShader extends ShaderProgram {
   }
 
   public void loadLights(final List<Light> lights) {
-    range(0, this.lights).forEach(i -> loadLight(i < lights.size() ? lights.get(i) : StaticShader.OFF_LIGHT, i));
+    range(0, this.lights).forEach(i -> loadLight(i < lights.size() ? lights.get(i) : OFF_LIGHT, i));
   }
 
   public void loadLight(Light light) {

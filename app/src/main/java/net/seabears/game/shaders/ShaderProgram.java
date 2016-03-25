@@ -12,7 +12,12 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
+import net.seabears.game.entities.Light;
+
 public abstract class ShaderProgram implements AutoCloseable {
+  protected static final String SHADER_ROOT = "src/main/shaders/";
+  protected static final Light OFF_LIGHT = new Light(new Vector3f(), new Vector3f());
+
   private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
   private static int loadShader(String file, int type) throws IOException {
@@ -33,9 +38,9 @@ public abstract class ShaderProgram implements AutoCloseable {
   private final int vertexShaderId;
   private final int fragmentShaderId;
 
-  public ShaderProgram(String vertexFile, String fragmentFile) throws IOException {
-    this.vertexShaderId = loadShader(vertexFile, GL20.GL_VERTEX_SHADER);
-    this.fragmentShaderId = loadShader(fragmentFile, GL20.GL_FRAGMENT_SHADER);
+  public ShaderProgram(String root) throws IOException {
+    this.vertexShaderId = loadShader(root + "vertexShader.txt", GL20.GL_VERTEX_SHADER);
+    this.fragmentShaderId = loadShader(root + "fragmentShader.txt", GL20.GL_FRAGMENT_SHADER);
     this.programId = GL20.glCreateProgram();
     GL20.glAttachShader(this.programId, this.vertexShaderId);
     GL20.glAttachShader(this.programId, this.fragmentShaderId);

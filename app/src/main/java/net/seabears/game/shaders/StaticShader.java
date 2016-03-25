@@ -17,9 +17,6 @@ import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
 public class StaticShader extends ShaderProgram {
-  private static final String SHADER_ROOT = "src/main/shaders/";
-  static final Light OFF_LIGHT = new Light(new Vector3f(), new Vector3f());
-
   public static final int ATTR_POSITION = 0;
   public static final int ATTR_TEXTURE = 1;
   public static final int ATTR_NORMAL = 2;
@@ -39,7 +36,7 @@ public class StaticShader extends ShaderProgram {
   private int locationViewMatrix;
 
   public StaticShader(int lights) throws IOException {
-    super(SHADER_ROOT + "vertexShader.txt", SHADER_ROOT + "fragmentShader.txt");
+    super(SHADER_ROOT);
     this.lights = lights;
   }
 

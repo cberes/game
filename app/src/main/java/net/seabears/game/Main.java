@@ -36,11 +36,13 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
-import net.seabears.game.render.TerrainRenderer;
 import net.seabears.game.render.EntityRenderer;
 import net.seabears.game.shaders.StaticShader;
-import net.seabears.game.shaders.TerrainShader;
+import net.seabears.game.skybox.SkyboxRenderer;
+import net.seabears.game.skybox.SkyboxShader;
 import net.seabears.game.terrains.Terrain;
+import net.seabears.game.terrains.TerrainRenderer;
+import net.seabears.game.terrains.TerrainShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
@@ -54,6 +56,7 @@ public class Main {
   private static final float NEAR_PLANE = 0.1f;
   private static final float FAR_PLANE = 1000.0f;
   private static final float GRAVITY = -32.0f;
+  private static final float SKYBOX_SIZE = 500.0f;
   private static final int MAX_LIGHTS = 4;
 
   public void run() {
@@ -90,7 +93,7 @@ public class Main {
      * lights, camera, ...
      */
     final List<Light> lights = new ArrayList<>();
-    lights.add(new Light(new Vector3f(0.0f, 1000.0f, -7000.0f), new Vector3f(0.4f, 0.4f, 0.4f)));
+    lights.add(new Light(new Vector3f(0.0f, 10000.0f, -7000.0f), new Vector3f(1.0f, 1.0f, 1.0f)));
     lights.add(new Light(new Vector3f(185.0f, 10.0f, -293.0f), new Vector3f(2.0f, 0.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
     lights.add(new Light(new Vector3f(370.0f, 17.0f, -300.0f), new Vector3f(0.0f, 2.0f, 2.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
     lights.add(new Light(new Vector3f(293.0f,  7.0f, -305.0f), new Vector3f(2.0f, 2.0f, 0.0f), new Vector3f(1.0f, 0.01f, 0.002f), true));
@@ -104,8 +107,9 @@ public class Main {
     final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
+    final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader, new SkyboxShader(), projMatrix.toMatrix(), SKYBOX_SIZE, SkyboxRenderer.loadCube(loader, "skybox/"));
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
-    final MasterRenderer master = new MasterRenderer(new Vector3f(0.9f, 0.9f, 1.0f), renderer, terrainRenderer);
+    final MasterRenderer master = new MasterRenderer(new Vector3f(0, 50, 0).div(255), renderer, terrainRenderer, skyboxRenderer);
 
     /*
      * models

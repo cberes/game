@@ -1,4 +1,4 @@
-package net.seabears.game.render;
+package net.seabears.game.terrains;
 
 import java.util.List;
 
@@ -10,8 +10,6 @@ import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.models.RawModel;
 import net.seabears.game.shaders.StaticShader;
-import net.seabears.game.shaders.TerrainShader;
-import net.seabears.game.terrains.Terrain;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
