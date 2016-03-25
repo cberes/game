@@ -57,6 +57,9 @@ import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 import net.seabears.game.util.Volume;
+import net.seabears.game.water.WaterRenderer;
+import net.seabears.game.water.WaterShader;
+import net.seabears.game.water.WaterTile;
 
 public class Main {
   private static final float FOV = 70.0f;
@@ -122,8 +125,9 @@ public class Main {
         new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
-    final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
     final MasterRenderer master = new MasterRenderer(new Vector3f(0.5f), renderer, terrainRenderer, skyboxRenderer);
+    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix());
+    final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
 
     /*
      * models
@@ -175,6 +179,12 @@ public class Main {
     }
 
     /*
+     * water
+     */
+    final List<WaterTile> waterTiles = new ArrayList<>();
+    waterTiles.add(new WaterTile(115, -60, -2, 25, 30));
+
+    /*
      * GUIs
      */
     List<GuiTexture> guis = new ArrayList<>();
@@ -209,11 +219,13 @@ public class Main {
 
       // render scene
       master.render(entities, terrains, lights, skybox, camera);
+      waterRenderer.render(waterTiles, camera);
       guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary
       display.update();
     }
+    waterRenderer.close();
     guiRenderer.close();
     return master;
   }
