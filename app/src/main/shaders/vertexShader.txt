@@ -1,4 +1,4 @@
-#version 130
+#version 140
 
 const float density = 0.0035;
 const float gradient = 5.0;

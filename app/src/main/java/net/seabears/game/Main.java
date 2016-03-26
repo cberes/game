@@ -57,6 +57,8 @@ import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 import net.seabears.game.util.Volume;
+import net.seabears.game.water.FrameBuffer;
+import net.seabears.game.water.WaterFrameBuffers;
 import net.seabears.game.water.WaterRenderer;
 import net.seabears.game.water.WaterShader;
 import net.seabears.game.water.WaterTile;
@@ -70,6 +72,11 @@ public class Main {
   private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
   private static final int MAX_LIGHTS = 4;
   private static final float MAX_TERRAIN_RANGE = 600.0f;
+
+  private static final int WATER_REFLECTION_WIDTH = 320;
+  private static final int WATER_REFLECTION_HEIGHT = 180;
+  private static final int WATER_REFRACTION_WIDTH = 1280;
+  private static final int WATER_REFRACTION_HEIGHT = 720;
 
   public void run() {
     final DirectionKeys dirKeys = new DirectionKeys();
@@ -126,8 +133,15 @@ public class Main {
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
     final MasterRenderer master = new MasterRenderer(new Vector3f(0.5f), renderer, terrainRenderer, skyboxRenderer);
-    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix());
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
+
+    /*
+     * water rendering
+     */
+    final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
+    final FrameBuffer refraction = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), false);
+    final WaterFrameBuffers waterFbo = new WaterFrameBuffers(reflection, refraction);
+    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix());
 
     /*
      * models
@@ -190,6 +204,7 @@ public class Main {
     List<GuiTexture> guis = new ArrayList<>();
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
             new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
+    guis.add(new GuiTexture(waterFbo.getReflectionTexture(), new Vector2f(-0.5f, 0.5f), new Vector2f(0.5f, 0.5f)));
 
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
 
@@ -217,6 +232,10 @@ public class Main {
         return Optional.empty();
       });
 
+      waterFbo.bindReflection();
+      master.render(entities, terrains, lights, skybox, camera);
+      waterFbo.unbind(display.getWidth(), display.getHeight());
+
       // render scene
       master.render(entities, terrains, lights, skybox, camera);
       waterRenderer.render(waterTiles, camera);
@@ -225,6 +244,7 @@ public class Main {
       // I don't know if the stuff in here is necessary
       display.update();
     }
+    waterFbo.close();
     waterRenderer.close();
     guiRenderer.close();
     return master;

@@ -42,7 +42,10 @@ public class DisplayManager implements AutoCloseable {
     }
 
     // Configure our window
-    glfwDefaultWindowHints(); // optional, the current window hints are already the default
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE); // the window will stay hidden after creation
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE); // the window will be resizable
 
@@ -84,10 +87,6 @@ public class DisplayManager implements AutoCloseable {
    * @param framebufferHeight The height of the new framebuffer
    */
   public void onResize(int framebufferWidth, int framebufferHeight) {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     glViewport(0, 0, framebufferWidth, framebufferHeight);
   }
 

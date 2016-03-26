@@ -1,4 +1,4 @@
-#version 130
+#version 140
 
 const float lowerLimit = 0.0;
 const float upperLimit = 30.0;
