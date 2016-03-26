@@ -9,12 +9,13 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.models.RawModel;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
 
-public class TerrainRenderer {
+public class TerrainRenderer implements Renderer {
   private final TerrainShader shader;
 
   public TerrainRenderer(TerrainShader shader, Matrix4f projectionMatrix) {
@@ -77,5 +78,10 @@ public class TerrainRenderer {
       default:
         throw new UnsupportedOperationException("add texture unit mapping");
     }
+  }
+
+  @Override
+  public void close() {
+    shader.close();
   }
 }

@@ -9,10 +9,11 @@ import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.TransformationMatrix;
 
-public class GuiRenderer implements AutoCloseable {
+public class GuiRenderer implements Renderer {
   private final RawModel quad;
   private final GuiShader shader;
 

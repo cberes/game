@@ -15,7 +15,7 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.textures.ModelTexture;
 
-public class EntityRenderer {
+public class EntityRenderer implements Renderer {
   private final StaticShader shader;
 
   public EntityRenderer(StaticShader shader, Matrix4f projectionMatrix) {
@@ -57,5 +57,10 @@ public class EntityRenderer {
       GL20.glDisableVertexAttribArray(StaticShader.ATTR_NORMAL);
       GL30.glBindVertexArray(0);
     }
+  }
+
+  @Override
+  public void close() {
+    shader.close();
   }
 }

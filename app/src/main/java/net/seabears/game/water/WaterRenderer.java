@@ -1,9 +1,11 @@
 package net.seabears.game.water;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -12,11 +14,13 @@ import org.lwjgl.opengl.GL30;
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
 import net.seabears.game.models.RawModel;
+import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.TransformationMatrix;
 
-public class WaterRenderer implements AutoCloseable {
+public class WaterRenderer implements Renderer {
   private final RawModel quad;
   private final WaterShader shader;
   private final WaterFrameBuffers fbs;
@@ -43,14 +47,35 @@ public class WaterRenderer implements AutoCloseable {
     return shader;
   }
 
-  public void render(List<WaterTile> water, List<Light> lights, Camera camera) {
-    prepareRender(lights, camera);
-    for (WaterTile tile : water) {
-      shader.loadModelMatrix(new TransformationMatrix(new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), new Vector3f(), tile.getSize()).toMatrix());
-      shader.loadTexture(tile.getWater());
-      GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quad.getVertexCount());
+  public void preRender(List<WaterTile> water, List<Light> lights, Camera camera, DisplayManager display, Consumer<Vector4f> renderAction) {
+    // water
+    if (!water.isEmpty()) {
+      // water reflection
+      fbs.bindReflection();
+      final float distance = 2.0f * (camera.getPosition().y - water.get(0).getHeight());
+      camera.moveForReflection(distance);
+      renderAction.accept(water.get(0).toReflectionPlane());
+      camera.undoReflectionMove(distance);
+
+      // water refraction
+      fbs.bindRefraction();
+      renderAction.accept(water.get(0).toRefractionPlane());
+
+      // unbind the buffer
+      fbs.unbind(display.getWidth(), display.getHeight());
     }
-    unbind();
+  }
+
+  public void render(List<WaterTile> water, List<Light> lights, Camera camera) {
+    if (!water.isEmpty()) {
+      prepareRender(lights, camera);
+      for (WaterTile tile : water) {
+        shader.loadModelMatrix(new TransformationMatrix(new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), new Vector3f(), tile.getSize()).toMatrix());
+        shader.loadTexture(tile.getWater());
+        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quad.getVertexCount());
+      }
+      unbind();
+    }
   }
 
   private void prepareRender(List<Light> lights, Camera camera) {
@@ -83,6 +108,7 @@ public class WaterRenderer implements AutoCloseable {
 
   @Override
   public void close() {
+    fbs.close();
     shader.close();
   }
 }

@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL11.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -42,6 +44,7 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.render.EntityRenderer;
 import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.shaders.StaticShader;
@@ -70,6 +73,7 @@ public class Main {
   private static final float NEAR_PLANE = 0.1f;
   private static final float FAR_PLANE = 1000.0f;
   private static final float GRAVITY = -32.0f;
+  private static final Vector3f SKY_COLOR = new Vector3f(0.5f);
   private static final float SKYBOX_SIZE = 500.0f;
   private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
   private static final int MAX_LIGHTS = 4;
@@ -84,25 +88,23 @@ public class Main {
   public void run() {
     final DirectionKeys dirKeys = new DirectionKeys();
     final MovementKeys movKeys = new MovementKeys();
-    final Loader loader = new Loader();
     final BlockingQueue<Scroll> scrolls = new LinkedBlockingDeque<>();
-    MasterRenderer renderer = null;
+    final Loader loader = new Loader();
+    final List<Renderer> renderers = new ArrayList<>();
     try (DisplayManager display = new DisplayManager("Game Engine", 800, 600)) {
       final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight(), MouseButton.RIGHT);
       init(display, dirKeys, movKeys, scrolls, panTilt);
-      renderer = loop(display, loader, dirKeys, movKeys, scrolls, panTilt);
+      renderers.addAll(loop(display, loader, dirKeys, movKeys, scrolls, panTilt));
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
     } finally {
-      if (renderer != null) {
-        renderer.close();
-      }
+      renderers.forEach(r -> r.close());
       loader.close();
     }
   }
 
-  private MasterRenderer loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
+  private List<Renderer> loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
     final FpsCalc fps = new FpsCalc();
     final DayNightCycle cycle = new DayNightCycle(DAY_LENGTH_MS, TimeUnit.MILLISECONDS, () -> System.currentTimeMillis());
     final Skybox skybox = new Skybox(cycle);
@@ -128,14 +130,14 @@ public class Main {
      */
     final ProjectionMatrix projMatrix = new ProjectionMatrix(display.getWidth(), display.getHeight(), FOV, NEAR_PLANE, FAR_PLANE);
     final StaticShader shader = new StaticShader(MAX_LIGHTS);
-    final EntityRenderer renderer = new EntityRenderer(shader, projMatrix.toMatrix());
+    final EntityRenderer entityRenderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
     final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader,
         new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
-    final MasterRenderer master = new MasterRenderer(new Vector3f(0.5f), renderer, terrainRenderer, skyboxRenderer);
+    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, terrainRenderer, skyboxRenderer);
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
 
     /*
@@ -238,35 +240,17 @@ public class Main {
         return Optional.empty();
       });
 
-      // water
-      if (!waterTiles.isEmpty()) {
-        // water reflection
-        waterFbs.bindReflection();
-        final float distance = 2.0f * (camera.getPosition().y - waterTiles.get(0).getHeight());
-        camera.moveForReflection(distance);
-        master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toReflectionPlane());
-        camera.undoReflectionMove(distance);
-
-        // water refraction
-        waterFbs.bindRefraction();
-        master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toRefractionPlane());
-
-        // unbind the buffer
-        waterFbs.unbind(display.getWidth(), display.getHeight());
-      }
-
       // render scene
-      master.render(entities, terrains, lights, skybox, camera, HIGH_PLANE);
+      final Consumer<Vector4f> renderAction = p -> renderer.render(entities, terrains, lights, skybox, camera, p);
+      waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
+      renderAction.accept(HIGH_PLANE);
       waterRenderer.render(waterTiles, lights, camera);
       guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary
       display.update();
     }
-    waterFbs.close();
-    waterRenderer.close();
-    guiRenderer.close();
-    return master;
+    return Arrays.asList(guiRenderer, waterRenderer, entityRenderer, terrainRenderer, skyboxRenderer);
   }
 
   private static Vector3f position(Random rand, List<Terrain> terrains) {

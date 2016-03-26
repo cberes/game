@@ -18,7 +18,7 @@ import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.terrains.TerrainRenderer;
 
-public class MasterRenderer implements AutoCloseable {
+public class MasterRenderer {
   public static void enableCulling() {
     // don't render triangles facing away from the camera
     GL11.glEnable(GL11.GL_CULL_FACE);
@@ -90,11 +90,5 @@ public class MasterRenderer implements AutoCloseable {
     skyboxRenderer.getShader().loadViewMatrix(camera);
     skyboxRenderer.render(skybox);
     skyboxRenderer.getShader().stop();
-  }
-
-  @Override
-  public void close() {
-    entityRenderer.getShader().close();
-    terrainRenderer.getShader().close();
   }
 }

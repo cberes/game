@@ -10,9 +10,10 @@ import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.StaticShader;
 
-public class SkyboxRenderer {
+public class SkyboxRenderer implements Renderer {
   public static int loadCube(Loader loader, String dir) throws IOException {
     return loader.loadCubeMap(
         dir + "right",
@@ -101,5 +102,10 @@ public class SkyboxRenderer {
 
   public void setCubeMap(int texture, boolean day) {
     textures[day ? 0 : 1] = texture;
+  }
+
+  @Override
+  public void close() {
+    shader.close();
   }
 }
