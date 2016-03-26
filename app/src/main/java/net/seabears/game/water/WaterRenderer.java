@@ -19,12 +19,14 @@ public class WaterRenderer implements AutoCloseable {
   private final RawModel quad;
   private final WaterShader shader;
   private final WaterFrameBuffers fbs;
+  private final int dudvMapId;
 
-  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs) {
+  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId) {
     // Just x and z vertex positions here: y is set to 0 in vertex shader
     float[] vertices = {-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1};
     this.quad = loader.loadToVao(vertices, 2);
     this.fbs = fbs;
+    this.dudvMapId = dudvMapId;
     this.shader = shader;
     this.shader.init();
     this.shader.start();
@@ -41,6 +43,7 @@ public class WaterRenderer implements AutoCloseable {
     prepareRender(camera);
     for (WaterTile tile : water) {
       shader.loadModelMatrix(new TransformationMatrix(new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), new Vector3f(), tile.getSize()).toMatrix());
+      shader.loadMoveFactor(tile.getWater().update());
       GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quad.getVertexCount());
     }
     unbind();
@@ -55,6 +58,8 @@ public class WaterRenderer implements AutoCloseable {
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbs.getReflectionTexture());
     GL13.glActiveTexture(GL13.GL_TEXTURE1);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbs.getRefractionTexture());
+    GL13.glActiveTexture(GL13.GL_TEXTURE2);
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, dudvMapId);
   }
 
   private void unbind() {

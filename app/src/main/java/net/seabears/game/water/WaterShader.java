@@ -10,6 +10,8 @@ import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.ViewMatrix;
 
 public class WaterShader extends ShaderProgram {
+  private int locationDuDvMap;
+  private int locationMoveFactor;
   private int locationModelMatrix;
   private int locationViewMatrix;
   private int locationProjectionMatrix;
@@ -27,6 +29,8 @@ public class WaterShader extends ShaderProgram {
 
   @Override
   protected void getAllUniformLocations() {
+    locationDuDvMap = getUniformLocation("dudvMap");
+    locationMoveFactor = getUniformLocation("moveFactor");
     locationModelMatrix = getUniformLocation("modelMatrix");
     locationProjectionMatrix = getUniformLocation("projectionMatrix");
     locationViewMatrix = getUniformLocation("viewMatrix");
@@ -38,6 +42,11 @@ public class WaterShader extends ShaderProgram {
     // these refer to texture units
     super.loadInt(locationReflectionTexture, 0);
     super.loadInt(locationRefractionTexture, 1);
+    super.loadInt(locationDuDvMap, 2);
+  }
+
+  public void loadMoveFactor(float moveFactor) {
+    super.loadFloat(locationMoveFactor, moveFactor);
   }
 
   public void loadModelMatrix(Matrix4f modelMatrix) {

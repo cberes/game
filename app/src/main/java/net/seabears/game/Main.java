@@ -59,6 +59,7 @@ import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 import net.seabears.game.util.Volume;
 import net.seabears.game.water.FrameBuffer;
+import net.seabears.game.water.Water;
 import net.seabears.game.water.WaterFrameBuffers;
 import net.seabears.game.water.WaterRenderer;
 import net.seabears.game.water.WaterShader;
@@ -143,7 +144,7 @@ public class Main {
     final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
     final FrameBuffer refraction = new FrameBuffer(WATER_REFRACTION_WIDTH, WATER_REFRACTION_HEIGHT, display.getWidth(), display.getHeight(), false);
     final WaterFrameBuffers waterFbs = new WaterFrameBuffers(reflection, refraction);
-    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix(), waterFbs);
+    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix(), waterFbs, loader.loadTexture("water/dudv"));
 
     /*
      * models
@@ -198,7 +199,7 @@ public class Main {
      * water
      */
     final List<WaterTile> waterTiles = new ArrayList<>();
-    waterTiles.add(new WaterTile(115, -60, -2, 25, 30));
+    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 115, -60, -2, 25, 30));
 
     /*
      * GUIs
