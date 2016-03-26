@@ -1,6 +1,8 @@
 #version 140
 
 const float waveStrength = 0.02;
+const vec3 waterNormal = vec3(0.0, 1.0, 0.0);
+const float reflectivity = 0.75;
 
 uniform sampler2D dudvMap;
 uniform float moveFactor;
@@ -9,6 +11,7 @@ uniform sampler2D refractionTexture;
 
 in vec4 clipSpaceCoords;
 in vec2 textureCoords;
+in vec3 toCameraVector;
 
 out vec4 out_Color;
 
@@ -32,8 +35,12 @@ void main(void) {
 
 	vec4 reflectionColor = texture(reflectionTexture, reflectionTextureCoords);
 	vec4 refractionColor = texture(refractionTexture, refractionTextureCoords);
-	// mix colors equally
-	out_Color = mix(reflectionColor, refractionColor, 0.5);
+
+	// fresnel effect: mix colors based on how close the camera is to the water's surface
+	vec3 viewVector = normalize(toCameraVector);
+	float refractiveFector = dot(viewVector, waterNormal);
+	out_Color = mix(reflectionColor, refractionColor, pow(refractiveFector, reflectivity));
+
 	// add some blue color
 	out_Color = mix(out_Color, vec4(0.0, 0.25, 0.5, 1.0), 0.2);
 }
