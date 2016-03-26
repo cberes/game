@@ -142,8 +142,8 @@ public class Main {
      */
     final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
     final FrameBuffer refraction = new FrameBuffer(WATER_REFRACTION_WIDTH, WATER_REFRACTION_HEIGHT, display.getWidth(), display.getHeight(), false);
-    final WaterFrameBuffers waterFbo = new WaterFrameBuffers(reflection, refraction);
-    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix());
+    final WaterFrameBuffers waterFbs = new WaterFrameBuffers(reflection, refraction);
+    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix(), waterFbs);
 
     /*
      * models
@@ -206,9 +206,9 @@ public class Main {
     List<GuiTexture> guis = new ArrayList<>();
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
             new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
-    guis.add(new GuiTexture(waterFbo.getReflectionTexture(), new Vector2f(-0.75f, 0.75f), new Vector2f(0.25f, 0.25f)));
-    guis.add(new GuiTexture(waterFbo.getRefractionTexture(), new Vector2f(-0.75f, 0.25f), new Vector2f(0.25f, 0.25f)));
-    guis.add(new GuiTexture(waterFbo.getRefractionDepthTexture(), new Vector2f(-0.75f, -0.25f), new Vector2f(0.25f, 0.25f)));
+    guis.add(new GuiTexture(waterFbs.getReflectionTexture(), new Vector2f(-0.75f, 0.75f), new Vector2f(0.25f, 0.25f)));
+    guis.add(new GuiTexture(waterFbs.getRefractionTexture(), new Vector2f(-0.75f, 0.25f), new Vector2f(0.25f, 0.25f)));
+    guis.add(new GuiTexture(waterFbs.getRefractionDepthTexture(), new Vector2f(-0.75f, -0.25f), new Vector2f(0.25f, 0.25f)));
 
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
 
@@ -237,18 +237,18 @@ public class Main {
       });
 
       // water reflection
-      waterFbo.bindReflection();
+      waterFbs.bindReflection();
       final float distance = 2.0f * (camera.getPosition().y - waterTiles.get(0).getHeight());
       camera.moveForReflection(distance);
       master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toReflectionPlane());
       camera.undoReflectionMove(distance);
 
       // water refraction
-      waterFbo.bindRefraction();
+      waterFbs.bindRefraction();
       master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toRefractionPlane());
 
       // render scene
-      waterFbo.unbind(display.getWidth(), display.getHeight());
+      waterFbs.unbind(display.getWidth(), display.getHeight());
       master.render(entities, terrains, lights, skybox, camera, HIGH_PLANE);
       waterRenderer.render(waterTiles, camera);
       guiRenderer.render(guis);
@@ -256,7 +256,7 @@ public class Main {
       // I don't know if the stuff in here is necessary
       display.update();
     }
-    waterFbo.close();
+    waterFbs.close();
     waterRenderer.close();
     guiRenderer.close();
     return master;

@@ -1,9 +1,16 @@
 #version 140
 
-in vec2 textureCoords;
+uniform sampler2D reflectionTexture;
+uniform sampler2D refractionTexture;
+
+in vec4 clipSpaceCoords;
 
 out vec4 out_Color;
 
 void main(void) {
-	out_Color = vec4(0.0, 0.0, 1.0, 1.0);
+	// convert to device coordinates, then map to texture coordinates
+	vec2 normDeviceCoords = clipSpaceCoords.xy / clipSpaceCoords.w / 2.0 + 0.5;
+	vec4 reflectionColor = texture(reflectionTexture, vec2(normDeviceCoords.x, -normDeviceCoords.y));
+	vec4 refractionColor = texture(refractionTexture, normDeviceCoords);
+	out_Color = mix(reflectionColor, refractionColor, 0.5);
 }

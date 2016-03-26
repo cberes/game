@@ -13,6 +13,8 @@ public class WaterShader extends ShaderProgram {
   private int locationModelMatrix;
   private int locationViewMatrix;
   private int locationProjectionMatrix;
+  private int locationReflectionTexture;
+  private int locationRefractionTexture;
 
   public WaterShader() throws IOException {
     super(SHADER_ROOT + "water/");
@@ -28,6 +30,14 @@ public class WaterShader extends ShaderProgram {
     locationModelMatrix = getUniformLocation("modelMatrix");
     locationProjectionMatrix = getUniformLocation("projectionMatrix");
     locationViewMatrix = getUniformLocation("viewMatrix");
+    locationReflectionTexture = getUniformLocation("reflectionTexture");
+    locationRefractionTexture = getUniformLocation("refractionTexture");
+  }
+
+  public void loadTextures() {
+    // these refer to texture units
+    super.loadInt(locationReflectionTexture, 0);
+    super.loadInt(locationRefractionTexture, 1);
   }
 
   public void loadModelMatrix(Matrix4f modelMatrix) {
