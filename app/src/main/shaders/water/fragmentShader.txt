@@ -1,10 +1,14 @@
 #version 140
 
 const float waveStrength = 0.02;
-const vec3 waterNormal = vec3(0.0, 1.0, 0.0);
-const float reflectivity = 0.75;
+const float refractivity = 0.75;
 
+uniform vec3 attenuation[4];
+uniform vec3 lightColor[4];
+uniform float reflectivity;
+uniform float shineDamper;
 uniform sampler2D dudvMap;
+uniform sampler2D normalMap;
 uniform float moveFactor;
 uniform sampler2D reflectionTexture;
 uniform sampler2D refractionTexture;
@@ -12,20 +16,21 @@ uniform sampler2D refractionTexture;
 in vec4 clipSpaceCoords;
 in vec2 textureCoords;
 in vec3 toCameraVector;
+in vec3 fromLightVector[4];
 
 out vec4 out_Color;
 
 void main(void) {
-	// convert to device coordinates, then map to texture coordinates
-	vec2 normDeviceCoords = clipSpaceCoords.xy / clipSpaceCoords.w / 2.0 + 0.5;
-
 	// moveFactor creates the appearance of movement (because moveFactor is changed by the shader)
 	// convert from [0.0,1.0] to [-1.0,1.0]
 	// use waveStrength to lessen the noise
-	vec2 distortion1 = (texture(dudvMap, vec2(textureCoords.x + moveFactor, textureCoords.y)).rg * 2.0 - 1.0) * waveStrength;
-	// sample DuDv map again for distortion in a second direction
-	vec2 distortion2 = (texture(dudvMap, vec2(-textureCoords.x, textureCoords.y + moveFactor)).rg * 2.0 - 1.0) * waveStrength;
-	vec2 totalDistortion = distortion1 + distortion2;
+	// sample DuDv map twice for distortion in a second direction
+	vec2 distortedTexCoords = texture(dudvMap, vec2(textureCoords.x + moveFactor, textureCoords.y)).rg * 0.1;
+	distortedTexCoords = textureCoords + vec2(distortedTexCoords.x, distortedTexCoords.y + moveFactor);
+	vec2 totalDistortion = (texture(dudvMap, distortedTexCoords).rg * 2.0 - 1.0) * waveStrength;
+
+	// convert to device coordinates, then map to texture coordinates
+	vec2 normDeviceCoords = clipSpaceCoords.xy / clipSpaceCoords.w / 2.0 + 0.5;
 
 	// reflection is upside down, so invert y
 	vec2 reflectionTextureCoords = vec2(normDeviceCoords.x, -normDeviceCoords.y) + totalDistortion;
@@ -36,11 +41,27 @@ void main(void) {
 	vec4 reflectionColor = texture(reflectionTexture, reflectionTextureCoords);
 	vec4 refractionColor = texture(refractionTexture, refractionTextureCoords);
 
+	// normal map
+	vec4 normalMapColor = texture(normalMap, distortedTexCoords);
+	vec3 normal = normalize(vec3(normalMapColor.r * 2.0 - 1.0, normalMapColor.b, normalMapColor.g * 2.0 - 1.0));
+
 	// fresnel effect: mix colors based on how close the camera is to the water's surface
 	vec3 viewVector = normalize(toCameraVector);
-	float refractiveFector = dot(viewVector, waterNormal);
-	out_Color = mix(reflectionColor, refractionColor, pow(refractiveFector, reflectivity));
+	float refractiveFector = dot(viewVector, normal);
+	out_Color = mix(reflectionColor, refractionColor, pow(refractiveFector, refractivity));
+
+	// specular lighting
+	vec3 totalSpecular = vec3(0.0);
+	for (int i = 0; i < 4; ++i) {
+		float distance = length(fromLightVector[i]);
+		float attfactor = attenuation[i].x + attenuation[i].y * distance + attenuation[i].z * distance * distance;
+		vec3 reflectedLight = reflect(normalize(fromLightVector[i]), normal);
+		float specularFactor = max(dot(reflectedLight, viewVector), 0.0);
+		float dampedFactor = pow(specularFactor, shineDamper);
+		vec3 specular = reflectivity * dampedFactor * lightColor[i] / attfactor;
+		totalSpecular = totalSpecular + specular;
+	}
 
 	// add some blue color
-	out_Color = mix(out_Color, vec4(0.0, 0.25, 0.5, 1.0), 0.2);
+	out_Color = mix(out_Color, vec4(0.0, 0.25, 0.5, 1.0), 0.2) + vec4(totalSpecular, 0.0);
 }

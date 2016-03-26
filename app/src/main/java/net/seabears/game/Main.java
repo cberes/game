@@ -144,7 +144,7 @@ public class Main {
     final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
     final FrameBuffer refraction = new FrameBuffer(WATER_REFRACTION_WIDTH, WATER_REFRACTION_HEIGHT, display.getWidth(), display.getHeight(), false);
     final WaterFrameBuffers waterFbs = new WaterFrameBuffers(reflection, refraction);
-    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix(), waterFbs, loader.loadTexture("water/dudv"));
+    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(MAX_LIGHTS), projMatrix.toMatrix(), waterFbs, loader.loadTexture("water/dudv"), loader.loadTexture("water/normal"));
 
     /*
      * models
@@ -251,7 +251,7 @@ public class Main {
       // render scene
       waterFbs.unbind(display.getWidth(), display.getHeight());
       master.render(entities, terrains, lights, skybox, camera, HIGH_PLANE);
-      waterRenderer.render(waterTiles, camera);
+      waterRenderer.render(waterTiles, lights, camera);
       guiRenderer.render(guis);
 
       // I don't know if the stuff in here is necessary

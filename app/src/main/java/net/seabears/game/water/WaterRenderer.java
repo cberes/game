@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.entities.Camera;
+import net.seabears.game.entities.Light;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
 import net.seabears.game.shaders.StaticShader;
@@ -20,17 +21,19 @@ public class WaterRenderer implements AutoCloseable {
   private final WaterShader shader;
   private final WaterFrameBuffers fbs;
   private final int dudvMapId;
+  private final int normalMapId;
 
-  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId) {
+  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId, int normalMapId) {
     // Just x and z vertex positions here: y is set to 0 in vertex shader
     float[] vertices = {-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1};
     this.quad = loader.loadToVao(vertices, 2);
     this.fbs = fbs;
     this.dudvMapId = dudvMapId;
+    this.normalMapId = normalMapId;
     this.shader = shader;
     this.shader.init();
     this.shader.start();
-    this.shader.loadTextures();
+    this.shader.loadWater();
     this.shader.loadProjectionMatrix(projectionMatrix);
     this.shader.stop();
   }
@@ -39,18 +42,19 @@ public class WaterRenderer implements AutoCloseable {
     return shader;
   }
 
-  public void render(List<WaterTile> water, Camera camera) {
-    prepareRender(camera);
+  public void render(List<WaterTile> water, List<Light> lights, Camera camera) {
+    prepareRender(lights, camera);
     for (WaterTile tile : water) {
       shader.loadModelMatrix(new TransformationMatrix(new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), new Vector3f(), tile.getSize()).toMatrix());
-      shader.loadMoveFactor(tile.getWater().update());
+      shader.loadTexture(tile.getWater());
       GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quad.getVertexCount());
     }
     unbind();
   }
 
-  private void prepareRender(Camera camera) {
+  private void prepareRender(List<Light> lights, Camera camera) {
     shader.start();
+    shader.loadLights(lights);
     shader.loadViewMatrix(camera);
     GL30.glBindVertexArray(quad.getVaoId());
     GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
@@ -60,6 +64,8 @@ public class WaterRenderer implements AutoCloseable {
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbs.getRefractionTexture());
     GL13.glActiveTexture(GL13.GL_TEXTURE2);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, dudvMapId);
+    GL13.glActiveTexture(GL13.GL_TEXTURE3);
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMapId);
   }
 
   private void unbind() {

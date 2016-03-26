@@ -82,10 +82,6 @@ public class TerrainShader extends ShaderProgram {
     range(0, this.lights).forEach(i -> loadLight(i < lights.size() ? lights.get(i) : OFF_LIGHT, i));
   }
 
-  public void loadLight(Light light) {
-    loadLight(light, 0);
-  }
-
   private void loadLight(Light light, int index) {
     super.loadFloat(locationLightAttenuation[index], light.getAttenuation());
     super.loadFloat(locationLightColor[index], light.getColor());
