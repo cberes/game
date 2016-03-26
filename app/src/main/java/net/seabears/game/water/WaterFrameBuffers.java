@@ -3,6 +3,8 @@ package net.seabears.game.water;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
+import net.seabears.game.render.FrameBuffer;
+
 public class WaterFrameBuffers implements AutoCloseable {
   private final FrameBuffer reflection;
   private final FrameBuffer refraction;

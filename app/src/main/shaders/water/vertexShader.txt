@@ -1,6 +1,6 @@
 #version 140
 
-const float tiling = 6.0;
+const float tiling = 4.0;
 
 uniform vec3 lightPosition[4];
 uniform vec3 cameraPosition;

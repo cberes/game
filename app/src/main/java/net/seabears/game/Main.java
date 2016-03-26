@@ -43,6 +43,7 @@ import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.EntityRenderer;
+import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
@@ -58,7 +59,6 @@ import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 import net.seabears.game.util.Volume;
-import net.seabears.game.water.FrameBuffer;
 import net.seabears.game.water.Water;
 import net.seabears.game.water.WaterFrameBuffers;
 import net.seabears.game.water.WaterRenderer;
@@ -144,7 +144,11 @@ public class Main {
     final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
     final FrameBuffer refraction = new FrameBuffer(WATER_REFRACTION_WIDTH, WATER_REFRACTION_HEIGHT, display.getWidth(), display.getHeight(), false);
     final WaterFrameBuffers waterFbs = new WaterFrameBuffers(reflection, refraction);
-    final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(MAX_LIGHTS), projMatrix.toMatrix(), waterFbs, loader.loadTexture("water/dudv"), loader.loadTexture("water/normal"));
+    final WaterRenderer waterRenderer = new WaterRenderer(loader,
+        new WaterShader(MAX_LIGHTS), projMatrix.toMatrix(),
+        waterFbs, loader.loadTexture("water/dudv"),
+        loader.loadTexture("water/normal"),
+        NEAR_PLANE, FAR_PLANE);
 
     /*
      * models
@@ -207,9 +211,6 @@ public class Main {
     List<GuiTexture> guis = new ArrayList<>();
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
             new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
-    guis.add(new GuiTexture(waterFbs.getReflectionTexture(), new Vector2f(-0.75f, 0.75f), new Vector2f(0.25f, 0.25f)));
-    guis.add(new GuiTexture(waterFbs.getRefractionTexture(), new Vector2f(-0.75f, 0.25f), new Vector2f(0.25f, 0.25f)));
-    guis.add(new GuiTexture(waterFbs.getRefractionDepthTexture(), new Vector2f(-0.75f, -0.25f), new Vector2f(0.25f, 0.25f)));
 
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
 
@@ -237,19 +238,24 @@ public class Main {
         return Optional.empty();
       });
 
-      // water reflection
-      waterFbs.bindReflection();
-      final float distance = 2.0f * (camera.getPosition().y - waterTiles.get(0).getHeight());
-      camera.moveForReflection(distance);
-      master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toReflectionPlane());
-      camera.undoReflectionMove(distance);
+      // water
+      if (!waterTiles.isEmpty()) {
+        // water reflection
+        waterFbs.bindReflection();
+        final float distance = 2.0f * (camera.getPosition().y - waterTiles.get(0).getHeight());
+        camera.moveForReflection(distance);
+        master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toReflectionPlane());
+        camera.undoReflectionMove(distance);
 
-      // water refraction
-      waterFbs.bindRefraction();
-      master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toRefractionPlane());
+        // water refraction
+        waterFbs.bindRefraction();
+        master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toRefractionPlane());
+
+        // unbind the buffer
+        waterFbs.unbind(display.getWidth(), display.getHeight());
+      }
 
       // render scene
-      waterFbs.unbind(display.getWidth(), display.getHeight());
       master.render(entities, terrains, lights, skybox, camera, HIGH_PLANE);
       waterRenderer.render(waterTiles, lights, camera);
       guiRenderer.render(guis);

@@ -1,4 +1,4 @@
-package net.seabears.game.water;
+package net.seabears.game.render;
 
 import java.nio.ByteBuffer;
 

@@ -38,10 +38,12 @@ public class WaterTile {
   }
 
   public Vector4f toReflectionPlane() {
-    return new Vector4f(0.0f, 1.0f, 0.0f, -height);
+    // add a small offset to avoid visible water edges
+    return new Vector4f(0.0f, 1.0f, 0.0f, -height + 0.5f);
   }
 
   public Vector4f toRefractionPlane() {
-    return new Vector4f(0.0f, -1.0f, 0.0f, height);
+    // add a small offset to avoid visible water edges
+    return new Vector4f(0.0f, -1.0f, 0.0f, height + 0.5f);
   }
 }

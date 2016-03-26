@@ -18,7 +18,10 @@ public class WaterShader extends ShaderProgram {
   private int[] locationLightAttenuation;
   private int[] locationLightColor;
   private int[] locationLightPosition;
+  private int locationNearPlane;
+  private int locationFarPlane;
   private int locationCameraPosition;
+  private int locationDepthMap;
   private int locationDuDvMap;
   private int locationNormalMap;
   private int locationMoveFactor;
@@ -45,7 +48,10 @@ public class WaterShader extends ShaderProgram {
     locationLightAttenuation = super.getUniformLocations("attenuation", lights);
     locationLightColor = super.getUniformLocations("lightColor", lights);
     locationLightPosition = super.getUniformLocations("lightPosition", lights);
+    locationNearPlane = super.getUniformLocation("nearPlane");
+    locationFarPlane = super.getUniformLocation("farPlane");
     locationCameraPosition = super.getUniformLocation("cameraPosition");
+    locationDepthMap = super.getUniformLocation("depthMap");
     locationDuDvMap = super.getUniformLocation("dudvMap");
     locationNormalMap = super.getUniformLocation("normalMap");
     locationMoveFactor = super.getUniformLocation("moveFactor");
@@ -56,6 +62,11 @@ public class WaterShader extends ShaderProgram {
     locationRefractionTexture = super.getUniformLocation("refractionTexture");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
+  }
+
+  public void loadPlanes(float near, float far) {
+    super.loadFloat(locationNearPlane, near);
+    super.loadFloat(locationFarPlane, far);
   }
 
   public void loadLights(final List<Light> lights) {
@@ -80,6 +91,7 @@ public class WaterShader extends ShaderProgram {
     super.loadInt(locationRefractionTexture, 1);
     super.loadInt(locationDuDvMap, 2);
     super.loadInt(locationNormalMap, 3);
+    super.loadInt(locationDepthMap, 4);
   }
 
   public void loadModelMatrix(Matrix4f modelMatrix) {

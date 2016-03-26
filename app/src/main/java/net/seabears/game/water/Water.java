@@ -11,7 +11,7 @@ public class Water {
   private final float shineDamper;
 
   public Water(FpsCalc fps, float waveSpeed, float wavePeriod) {
-    this(fps, waveSpeed, wavePeriod, 0.6f, 20.0f);
+    this(fps, waveSpeed, wavePeriod, 0.5f, 20.0f);
   }
 
   public Water(FpsCalc fps, float waveSpeed, float wavePeriod, float reflectivity, float shineDamper) {

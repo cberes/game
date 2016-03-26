@@ -23,7 +23,7 @@ public class WaterRenderer implements AutoCloseable {
   private final int dudvMapId;
   private final int normalMapId;
 
-  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId, int normalMapId) {
+  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId, int normalMapId, float nearPlane, float farPlane) {
     // Just x and z vertex positions here: y is set to 0 in vertex shader
     float[] vertices = {-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1};
     this.quad = loader.loadToVao(vertices, 2);
@@ -34,6 +34,7 @@ public class WaterRenderer implements AutoCloseable {
     this.shader.init();
     this.shader.start();
     this.shader.loadWater();
+    this.shader.loadPlanes(nearPlane, farPlane);
     this.shader.loadProjectionMatrix(projectionMatrix);
     this.shader.stop();
   }
@@ -66,9 +67,15 @@ public class WaterRenderer implements AutoCloseable {
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, dudvMapId);
     GL13.glActiveTexture(GL13.GL_TEXTURE3);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMapId);
+    GL13.glActiveTexture(GL13.GL_TEXTURE4);
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbs.getRefractionDepthTexture());
+    // enable alpha-blending
+    GL11.glEnable(GL11.GL_BLEND);
+    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
   }
 
   private void unbind() {
+    GL11.glDisable(GL11.GL_BLEND);
     GL20.glDisableVertexAttribArray(0);
     GL30.glBindVertexArray(0);
     shader.stop();
