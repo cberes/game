@@ -10,6 +10,7 @@ uniform mat4 viewMatrix;
 uniform float fakeLighting;
 uniform float textureRows;
 uniform vec2 textureOffset;
+uniform vec4 clippingPlane;
 
 in vec3 position;
 in vec2 textureCoords;
@@ -24,6 +25,8 @@ out float visibility;
 void main(void) {
 	// move vertices relative to world origin (world coordinates)
 	vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
+	// specify plane for culling
+	gl_ClipDistance[0] = dot(worldPosition, clippingPlane);
 	// move vertices relative to the camera (eye space)
 	vec4 positionRelativeToCamera = viewMatrix * worldPosition;
 	// add perspective (scale distance objects, give world a frustrum shape)

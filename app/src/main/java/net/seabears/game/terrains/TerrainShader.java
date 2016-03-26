@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
@@ -24,6 +25,7 @@ public class TerrainShader extends ShaderProgram {
   public static final int TEXTURE_UNIT_BLEND = 4;
 
   private final int lights;
+  private int locationClippingPlane;
   private int locationFakeLighting;
   private int[] locationLightAttenuation;
   private int[] locationLightColor;
@@ -54,6 +56,7 @@ public class TerrainShader extends ShaderProgram {
 
   @Override
   protected void getAllUniformLocations() {
+    locationClippingPlane = super.getUniformLocation("clippingPlane");
     locationFakeLighting = super.getUniformLocation("fakeLighting");
     locationLightAttenuation = super.getUniformLocations("attenuation", lights);
     locationLightColor = super.getUniformLocations("lightColor", lights);
@@ -69,6 +72,10 @@ public class TerrainShader extends ShaderProgram {
     locationgTexture = super.getUniformLocation("gTexture");
     locationbTexture = super.getUniformLocation("bTexture");
     locationBlendMap = super.getUniformLocation("blendMap");
+  }
+
+  public void loadClippingPlane(Vector4f plane) {
+    this.loadFloat(locationClippingPlane, plane);
   }
 
   public void loadLights(final List<Light> lights) {

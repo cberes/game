@@ -8,6 +8,7 @@ import java.util.List;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
@@ -22,6 +23,7 @@ public class StaticShader extends ShaderProgram {
   public static final int ATTR_NORMAL = 2;
 
   private final int lights;
+  private int locationClippingPlane;
   private int locationFakeLighting;
   private int[] locationLightAttenuation;
   private int[] locationLightColor;
@@ -49,6 +51,7 @@ public class StaticShader extends ShaderProgram {
 
   @Override
   protected void getAllUniformLocations() {
+    locationClippingPlane = super.getUniformLocation("clippingPlane");
     locationFakeLighting = super.getUniformLocation("fakeLighting");
     locationLightAttenuation = super.getUniformLocations("attenuation", lights);
     locationLightColor = super.getUniformLocations("lightColor", lights);
@@ -61,6 +64,10 @@ public class StaticShader extends ShaderProgram {
     locationTextureOffset = super.getUniformLocation("textureOffset");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
+  }
+
+  public void loadClippingPlane(Vector4f plane) {
+    this.loadFloat(locationClippingPlane, plane);
   }
 
   public void loadLights(final List<Light> lights) {

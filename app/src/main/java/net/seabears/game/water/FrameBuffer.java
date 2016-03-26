@@ -89,7 +89,7 @@ public class FrameBuffer implements AutoCloseable {
     GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, formatInternal, width, height, 0, format, type, (ByteBuffer) null);
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-    GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, texture, 0);
+    GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, attachment, texture, 0);
     return texture;
   }
 

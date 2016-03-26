@@ -58,6 +58,18 @@ public class Camera {
     pitch = (float) Math.min(90.0, Math.max(0.0, pitch - pos.getY()));
   }
 
+  public void moveForReflection(float distance) {
+    position.y -= distance;
+    pitch = -pitch;
+    roll = -roll;
+  }
+
+  public void undoReflectionMove(float distance) {
+    position.y += distance;
+    pitch = -pitch;
+    roll = -roll;
+  }
+
   public Vector3f getPosition() {
     return position;
   }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 import net.seabears.game.entities.Camera;
@@ -57,16 +58,17 @@ public class MasterRenderer implements AutoCloseable {
     entities.get(model).add(entity);
   }
 
-  public void render(List<Entity> entities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera) {
+  public void render(List<Entity> entities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {
     entities.forEach(this::add);
     prepare();
-    render(terrains, lights, skybox, camera);
+    render(terrains, lights, skybox, camera, clippingPlane);
     this.entities.clear();
   }
 
-  private void render(List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera) {
+  private void render(List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {
     // entities
     entityRenderer.getShader().start();
+    entityRenderer.getShader().loadClippingPlane(clippingPlane);
     entityRenderer.getShader().loadLights(lights);
     entityRenderer.getShader().loadSky(skyColor);
     entityRenderer.getShader().loadViewMatrix(camera);
@@ -75,6 +77,7 @@ public class MasterRenderer implements AutoCloseable {
 
     // terrain
     terrainRenderer.getShader().start();
+    terrainRenderer.getShader().loadClippingPlane(clippingPlane);
     terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadViewMatrix(camera);

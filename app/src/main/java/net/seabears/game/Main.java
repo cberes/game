@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
@@ -72,6 +73,7 @@ public class Main {
   private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
   private static final int MAX_LIGHTS = 4;
   private static final float MAX_TERRAIN_RANGE = 600.0f;
+  private static final Vector4f HIGH_PLANE = new Vector4f(0.0f, 1.0f, 0.0f, -1000.0f);
 
   private static final int WATER_REFLECTION_WIDTH = 320;
   private static final int WATER_REFLECTION_HEIGHT = 180;
@@ -139,7 +141,7 @@ public class Main {
      * water rendering
      */
     final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
-    final FrameBuffer refraction = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), false);
+    final FrameBuffer refraction = new FrameBuffer(WATER_REFRACTION_WIDTH, WATER_REFRACTION_HEIGHT, display.getWidth(), display.getHeight(), false);
     final WaterFrameBuffers waterFbo = new WaterFrameBuffers(reflection, refraction);
     final WaterRenderer waterRenderer = new WaterRenderer(loader, new WaterShader(), projMatrix.toMatrix());
 
@@ -204,7 +206,9 @@ public class Main {
     List<GuiTexture> guis = new ArrayList<>();
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
             new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
-    guis.add(new GuiTexture(waterFbo.getReflectionTexture(), new Vector2f(-0.5f, 0.5f), new Vector2f(0.5f, 0.5f)));
+    guis.add(new GuiTexture(waterFbo.getReflectionTexture(), new Vector2f(-0.75f, 0.75f), new Vector2f(0.25f, 0.25f)));
+    guis.add(new GuiTexture(waterFbo.getRefractionTexture(), new Vector2f(-0.75f, 0.25f), new Vector2f(0.25f, 0.25f)));
+    guis.add(new GuiTexture(waterFbo.getRefractionDepthTexture(), new Vector2f(-0.75f, -0.25f), new Vector2f(0.25f, 0.25f)));
 
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
 
@@ -232,12 +236,20 @@ public class Main {
         return Optional.empty();
       });
 
+      // water reflection
       waterFbo.bindReflection();
-      master.render(entities, terrains, lights, skybox, camera);
-      waterFbo.unbind(display.getWidth(), display.getHeight());
+      final float distance = 2.0f * (camera.getPosition().y - waterTiles.get(0).getHeight());
+      camera.moveForReflection(distance);
+      master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toReflectionPlane());
+      camera.undoReflectionMove(distance);
+
+      // water refraction
+      waterFbo.bindRefraction();
+      master.render(entities, terrains, lights, skybox, camera, waterTiles.get(0).toRefractionPlane());
 
       // render scene
-      master.render(entities, terrains, lights, skybox, camera);
+      waterFbo.unbind(display.getWidth(), display.getHeight());
+      master.render(entities, terrains, lights, skybox, camera, HIGH_PLANE);
       waterRenderer.render(waterTiles, camera);
       guiRenderer.render(guis);
 

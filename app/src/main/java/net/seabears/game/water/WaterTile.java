@@ -1,6 +1,7 @@
 package net.seabears.game.water;
 
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class WaterTile {
   private final float height;
@@ -28,5 +29,13 @@ public class WaterTile {
 
   public Vector3f getSize() {
     return size;
+  }
+
+  public Vector4f toReflectionPlane() {
+    return new Vector4f(0.0f, 1.0f, 0.0f, -height);
+  }
+
+  public Vector4f toRefractionPlane() {
+    return new Vector4f(0.0f, -1.0f, 0.0f, height);
   }
 }
