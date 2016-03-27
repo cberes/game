@@ -1,5 +1,6 @@
 package net.seabears.game;
 
+import static java.util.stream.IntStream.range;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -31,11 +32,13 @@ import net.seabears.game.entities.EntityLight;
 import net.seabears.game.entities.EntityTexture;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.Player;
+import net.seabears.game.guis.GuiBuilder;
 import net.seabears.game.guis.GuiRenderer;
 import net.seabears.game.guis.GuiShader;
 import net.seabears.game.guis.GuiTexture;
 import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
+import net.seabears.game.input.GuiPicker;
 import net.seabears.game.input.MouseButton;
 import net.seabears.game.input.MousePicker;
 import net.seabears.game.input.MovementKeys;
@@ -167,6 +170,16 @@ public class Main {
         new ModelTexture(loader.loadTexture("fern"), 2, true, true));
 
     /*
+     * textures that can be added to the world
+     */
+    final List<EntityTexture> textures = new ArrayList<>();
+    textures.add(new EntityTexture(lamp));
+    textures.add(new EntityTexture(tree));
+    textures.add(new EntityTexture(stall));
+    range(0, 4).forEach(i -> textures.add(new EntityTexture(lowPolyTree, i)));
+    range(0, 4).forEach(i -> textures.add(new EntityTexture(fern, i)));
+
+    /*
      * terrains
      */
     final TerrainTexturePack terrainPack = new TerrainTexturePack(
@@ -210,11 +223,20 @@ public class Main {
     /*
      * GUIs
      */
-    List<GuiTexture> guis = new ArrayList<>();
-    guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f),
-            new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f)));
+    // add GUIs for models that can be added to the scene
+    final Vector2f guiScale = new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f);
+    final GuiBuilder guiBuilder = new GuiBuilder(guiScale.x, guiScale.y);
+    // TODO make GUI take generic "action" objects... one of which will be to create new entities
+    textures.forEach(guiBuilder::add);
 
+    // create final list of GUIs for the window
+    List<GuiTexture> guis = new ArrayList<>();
+    guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f), guiScale));
+    guis.addAll(guiBuilder.getGuis().values());
+
+    // pickers
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
+    final GuiPicker guiPicker = new GuiPicker(MouseButton.LEFT, mousePicker, guiBuilder.getGuis());
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
@@ -234,11 +256,21 @@ public class Main {
       camera.move();
 
       // update mouse picker after camera has moved
-      mousePicker.update(display.getWidth(), display.getHeight());
-      mousePicker.findTerrainPoint(terrains, MAX_TERRAIN_RANGE).flatMap(p -> {
-        entities.get(1).place(p);
+      // GUI picker to create new entities in the scene
+      final boolean guiActive = guiPicker.update(display.getWidth(), display.getHeight());
+      guiPicker.getSelection().flatMap(t -> {
+        entities.add(new Entity(t, new Vector3f(), new Vector3f(), 1.0f));
         return Optional.empty();
       });
+      // mouse picker to move the previously created entity
+      mousePicker.update(display.getWidth(), display.getHeight());
+      if (!guiActive) {
+        mousePicker.findTerrainPoint(terrains, MAX_TERRAIN_RANGE).flatMap(p -> {
+          entities.get(entities.size() - 1).place(p);
+          return Optional.empty();
+        });
+      }
+      // TODO something something to resize and rotate the selected entity
 
       // render scene
       final Consumer<Vector4f> renderAction = p -> renderer.render(entities, terrains, lights, skybox, camera, p);
