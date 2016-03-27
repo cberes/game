@@ -9,8 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Random;
@@ -35,6 +38,8 @@ import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.EntityTexture;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.Player;
+import net.seabears.game.entities.SimpleRenderer;
+import net.seabears.game.entities.SimpleShader;
 import net.seabears.game.entities.StaticShader;
 import net.seabears.game.entities.normalmap.NormalMappingRenderer;
 import net.seabears.game.entities.normalmap.NormalMappingShader;
@@ -110,6 +115,7 @@ public class Main {
   private static final Vector4f HIGH_PLANE = new Vector4f(0.0f, 1.0f, 0.0f, -1000.0f);
   private static final int MAX_PARTICLES = 10000;
   private static final int SHADOW_MAP_SIZE = 4096;
+  private static final int NUM_ENTITIES = 100;
 
   private static final int WATER_REFLECTION_WIDTH = 320;
   private static final int WATER_REFLECTION_HEIGHT = 180;
@@ -176,7 +182,8 @@ public class Main {
     final ShadowMapRenderer shadowRenderer = new ShadowMapRenderer(new ShadowMapShader(),
         new ShadowBox(camera, FOV, NEAR_PLANE, 150, 10, display.getWidth(), display.getHeight()),
         new FrameBuffer(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, display.getWidth(), display.getHeight()), 2);
-    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
+    final SimpleRenderer simpleRenderer = new SimpleRenderer(new SimpleShader(), projMatrix.toMatrix());
+    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer, shadowRenderer, simpleRenderer);
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
 
     /*
@@ -206,16 +213,6 @@ public class Main {
         new ModelTexture(loader.loadTexture("fern"), 2, true, true));
     final TexturedModel barrel = new TexturedModel(loader.loadToVao(NormalMappedObjFileLoader.load("barrel")),
         new ModelTexture(loader.loadTexture("barrel"), loader.loadTexture("barrel-normal"), 1, 0.5f, 10.0f, false, false));
-
-    /*
-     * textures that can be added to the world
-     */
-    final List<EntityTexture> textures = new ArrayList<>();
-    textures.add(new EntityTexture(lamp));
-    textures.add(new EntityTexture(tree));
-    textures.add(new EntityTexture(stall));
-    range(0, 4).forEach(i -> textures.add(new EntityTexture(lowPolyTree, i)));
-    range(0, 4).forEach(i -> textures.add(new EntityTexture(fern, i)));
 
     /*
      * terrains
@@ -258,15 +255,14 @@ public class Main {
     final List<Entity> entities = new ArrayList<>();
     entities.add(player);
     final Random rand = new Random();
-    final int numTrees = 1000;
     entities.add(new Entity(new EntityTexture(lamp), position(800, 100, terrains), new Vector3f(), 1.0f, new EntityLight(lights.get(1), new Vector3f(0.0f, 10.0f, 0.0f))));
     entities.add(new Entity(new EntityTexture(lamp), position(750, 50, terrains), new Vector3f(), 1.0f, new EntityLight(lights.get(2), new Vector3f(0.0f, 10.0f, 0.0f))));
     entities.add(new Entity(new EntityTexture(lamp), position(850, 50, terrains), new Vector3f(), 1.0f, new EntityLight(lights.get(3), new Vector3f(0.0f, 10.0f, 0.0f))));
-    for (int i = 0; i < numTrees; ++i) {
+    for (int i = 0; i < NUM_ENTITIES; ++i) {
       entities.add(new Entity(new EntityTexture(tree), position(rand, terrains), new Vector3f(), 0.8f));
       entities.add(new Entity(new EntityTexture(lowPolyTree, rand.nextInt(4)), position(rand, terrains), new Vector3f(), 0.4f));
     }
-    for (int i = 0; i < numTrees * 4; ++i) {
+    for (int i = 0; i < NUM_ENTITIES * 4; ++i) {
       entities.add(new Entity(new EntityTexture(fern, rand.nextInt(4)), position(rand, terrains), new Vector3f(), 0.6f));
     }
     for (int i = 0; i < 10; ++i) {
@@ -299,13 +295,35 @@ public class Main {
     text.forEach(textMaster::load);
 
     /*
+     * textures that can be added to the world
+     */
+    final Map<EntityTexture, Float> textures = new HashMap<EntityTexture, Float>();
+    textures.put(new EntityTexture(lamp), 0.5f);
+    textures.put(new EntityTexture(tree), 0.25f);
+    textures.put(new EntityTexture(stall), 0.5f);
+    range(0, 4).forEach(i -> textures.put(new EntityTexture(lowPolyTree, i), 0.25f));
+    range(0, 4).forEach(i -> textures.put(new EntityTexture(fern, i), 1.0f));
+
+    /*
      * GUIs
      */
     // add GUIs for models that can be added to the scene
     final Vector2f guiScale = new Vector2f(0.1f, display.getWidth() / (float) display.getHeight() * 0.1f);
     final GuiBuilder guiBuilder = new GuiBuilder(guiScale.x, guiScale.y);
     // TODO make GUI take generic "action" objects... one of which will be to create new entities
-    textures.forEach(guiBuilder::add);
+    final Camera fakeCamera = new Camera(null, 0.0f, 0.0f);
+    fakeCamera.move(new Vector3f(0.0f, 2.5f, 5.0f));
+    fakeCamera.rotate(new Vector3f(0.0f, 0.0f, 180.0f));
+    final Matrix4f fakeViewMatrix = new ViewMatrix(fakeCamera).toMatrix();
+    final List<FrameBuffer> fbs = new ArrayList<>();
+    for (Map.Entry<EntityTexture, Float> texture : textures.entrySet()) {
+      final FrameBuffer fb = new FrameBuffer(display.getWidth(), display.getHeight(), display.getWidth(), display.getHeight(), true);
+      fbs.add(fb);
+      fb.bind();
+      renderer.renderSimple(Collections.singletonList(new Entity(texture.getKey(), new Vector3f(), new Vector3f(), texture.getValue())), fakeViewMatrix);
+      fb.unbind(display.getWidth(), display.getHeight());
+      guiBuilder.add(texture.getKey(), fb.getTexture());
+    }
 
     // create final list of GUIs for the window
     List<GuiTexture> guis = new ArrayList<>();
@@ -399,7 +417,8 @@ public class Main {
         System.out.println(viewMatrix);
       }
     }
-    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
+    fbs.forEach(fb -> fb.close());
+    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer, shadowRenderer, simpleRenderer);
   }
 
   private static Vector3f position(float x, float z, List<Terrain> terrains) {

@@ -21,18 +21,19 @@ public class GuiBuilder {
     this.guis = new HashMap<>();
   }
 
-  public void add(EntityTexture t) {
-    if (lastY + height > 1.0f) {
+  public void add(EntityTexture t, int textureId) {
+    if (lastY + height * 2 > 1.0f) {
       lastY = -1.0f;
-      lastX += width;
+      lastX += width * 2;
     }
-    if (lastX + width > 1.0f) {
-      throw new IllegalStateException("too many guis");
+    if (lastX + width * 2 > 1.0f) {
+      throw new IllegalStateException("too many GUIs");
     }
-    final float centerX = lastX + (width / 2.0f);
-    final float centerY = lastY + (height / 2.0f);
-    guis.put(t, new GuiTexture(t.getModel().getTexture().getTextureId(), new Vector2f(centerX, centerY), new Vector2f(width, height)));
-    lastY += height;
+
+    final float centerX = lastX + width;
+    final float centerY = lastY + height;
+    guis.put(t, new GuiTexture(textureId, new Vector2f(centerX, centerY), new Vector2f(width, height)));
+    lastY += height * 2;
   }
 
   public Map<EntityTexture, GuiTexture> getGuis() {

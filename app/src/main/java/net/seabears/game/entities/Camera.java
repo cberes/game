@@ -13,9 +13,13 @@ public class Camera {
   private double distance, angle;
 
   public Camera(Player player) {
+    this(player, 50.0f, 20.0f);
+  }
+
+  public Camera(Player player, double distance, float pitch) {
     this.player = player;
-    this.distance = 50.0f;
-    this.pitch = 20.0f;
+    this.pitch = pitch;
+    this.distance = distance;
   }
 
   public void move(Vector3f position) {

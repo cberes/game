@@ -40,8 +40,10 @@ public class GuiPicker {
   }
 
   private static boolean isMouseInBounds(MousePosition mouse, Vector2f pos, Vector2f size) {
+    final float halfX = size.x;
+    final float halfY = size.y;
     // invert y
-    return mouse.getX() >= pos.x && mouse.getX() < pos.x + size.x
-        && -mouse.getY() >= pos.y && -mouse.getY() < pos.y + size.y;
+    return mouse.getX() >= pos.x - halfX && mouse.getX() < pos.x + halfX
+        && -mouse.getY() >= pos.y - halfY && -mouse.getY() < pos.y + halfY;
   }
 }

@@ -1,0 +1,27 @@
+#version 140
+
+uniform mat4 projectionMatrix;
+uniform mat4 transformationMatrix;
+uniform mat4 viewMatrix;
+uniform float textureRows;
+uniform vec2 textureOffset;
+
+in vec3 position;
+in vec2 textureCoords;
+in vec3 normal;
+
+out vec2 pass_textureCoords;
+
+void main(void) {
+	// move vertices relative to world origin (world coordinates)
+	vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
+	// move vertices relative to the camera (eye space)
+	vec4 positionRelativeToCamera = viewMatrix * worldPosition;
+	// add perspective (scale distance objects, give world a frustrum shape)
+	gl_Position = projectionMatrix * positionRelativeToCamera;
+
+	// Then, OpenGL converts coordinates to its space (perspective division)
+	// Finally, OpenGL converts those coordinates to 2D pixels on the screen (viewport)
+
+	pass_textureCoords = textureCoords / textureRows + textureOffset;
+}

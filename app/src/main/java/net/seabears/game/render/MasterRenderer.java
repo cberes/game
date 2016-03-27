@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL11;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.Light;
+import net.seabears.game.entities.SimpleRenderer;
 import net.seabears.game.entities.normalmap.NormalMappingRenderer;
 import net.seabears.game.shadows.ShadowMapRenderer;
 import net.seabears.game.skybox.Skybox;
@@ -34,14 +35,16 @@ public class MasterRenderer {
   private final TerrainRenderer terrainRenderer;
   private final SkyboxRenderer skyboxRenderer;
   private final ShadowMapRenderer shadowRenderer;
+  private final SimpleRenderer simpleRenderer;
 
-  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer, ShadowMapRenderer shadowRenderer) {
+  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer, ShadowMapRenderer shadowRenderer, SimpleRenderer simpleRenderer) {
     this.skyColor = skyColor;
     this.entityRenderer = entityRenderer;
     this.nmRenderer = nmRenderer;
     this.terrainRenderer = terrainRenderer;
     this.skyboxRenderer = skyboxRenderer;
     this.shadowRenderer = shadowRenderer;
+    this.simpleRenderer = simpleRenderer;
     enableCulling();
   }
 
@@ -50,6 +53,18 @@ public class MasterRenderer {
       e.addAll(entities);
       e.addAll(nmEntities);
       shadowRenderer.render(e.get(), lights.get(0), displayWidth, displayHeight);
+  }
+
+  public void renderSimple(List<Entity> entities, Matrix4f viewMatrix) {
+    // simple-rendered entities
+    if (!entities.isEmpty()) {
+      final EntitiesByTexture e = new EntitiesByTexture();
+      e.addAll(entities);
+      simpleRenderer.getShader().start();
+      simpleRenderer.getShader().loadViewMatrix(viewMatrix);
+      simpleRenderer.render(e.get());
+      simpleRenderer.getShader().stop();
+    }
   }
 
   public void render(List<Entity> entities, List<Entity> nmEntities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Matrix4f viewMatrix, Vector4f clippingPlane) {
@@ -87,20 +102,24 @@ public class MasterRenderer {
     }
 
     // terrain
-    terrainRenderer.getShader().start();
-    terrainRenderer.getShader().loadClippingPlane(clippingPlane);
-    terrainRenderer.getShader().loadLights(lights);
-    terrainRenderer.getShader().loadSky(skyColor);
-    terrainRenderer.getShader().loadViewMatrix(viewMatrix);
-    terrainRenderer.getShader().loadShadows(shadowRenderer);
-    terrainRenderer.render(terrains, shadowRenderer.getShadowMap());
-    terrainRenderer.getShader().stop();
+    if (!terrains.isEmpty()) {
+      terrainRenderer.getShader().start();
+      terrainRenderer.getShader().loadClippingPlane(clippingPlane);
+      terrainRenderer.getShader().loadLights(lights);
+      terrainRenderer.getShader().loadSky(skyColor);
+      terrainRenderer.getShader().loadViewMatrix(viewMatrix);
+      terrainRenderer.getShader().loadShadows(shadowRenderer);
+      terrainRenderer.render(terrains, shadowRenderer.getShadowMap());
+      terrainRenderer.getShader().stop();
+    }
 
     // skybox
-    skyboxRenderer.getShader().start();
-    skyboxRenderer.getShader().loadSky(skyColor);
-    skyboxRenderer.getShader().loadViewMatrix(viewMatrix);
-    skyboxRenderer.render(skybox);
-    skyboxRenderer.getShader().stop();
+    if (skybox != null) {
+      skyboxRenderer.getShader().start();
+      skyboxRenderer.getShader().loadSky(skyColor);
+      skyboxRenderer.getShader().loadViewMatrix(viewMatrix);
+      skyboxRenderer.render(skybox);
+      skyboxRenderer.getShader().stop();
+    }
   }
 }
