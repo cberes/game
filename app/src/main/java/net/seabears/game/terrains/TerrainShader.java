@@ -11,8 +11,8 @@ import org.joml.Vector4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
+import net.seabears.game.entities.StaticShader;
 import net.seabears.game.shaders.ShaderProgram;
-import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;

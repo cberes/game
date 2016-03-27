@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.joml.Matrix4f;
 
+import net.seabears.game.entities.StaticShader;
 import net.seabears.game.shaders.ShaderProgram;
-import net.seabears.game.shaders.StaticShader;
 
 public class GuiShader extends ShaderProgram {
   private int locationTransformationMatrix;

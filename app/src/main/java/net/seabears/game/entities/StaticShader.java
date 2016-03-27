@@ -1,4 +1,4 @@
-package net.seabears.game.shaders;
+package net.seabears.game.entities;
 
 import static java.util.stream.IntStream.range;
 
@@ -10,9 +10,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import net.seabears.game.entities.Camera;
-import net.seabears.game.entities.Entity;
-import net.seabears.game.entities.Light;
+import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;

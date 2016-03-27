@@ -13,11 +13,11 @@ import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
+import net.seabears.game.entities.StaticShader;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.Renderer;
-import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.TransformationMatrix;
 
 public class WaterRenderer implements Renderer {

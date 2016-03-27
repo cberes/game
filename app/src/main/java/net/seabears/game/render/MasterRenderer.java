@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL11;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
+import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.Light;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.skybox.Skybox;

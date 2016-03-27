@@ -6,8 +6,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import net.seabears.game.entities.Camera;
+import net.seabears.game.entities.StaticShader;
 import net.seabears.game.shaders.ShaderProgram;
-import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ViewMatrix;
 

@@ -24,8 +24,8 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
+import net.seabears.game.entities.StaticShader;
 import net.seabears.game.models.RawModel;
-import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.textures.TextureData;
 import net.seabears.game.util.ModelData;
 

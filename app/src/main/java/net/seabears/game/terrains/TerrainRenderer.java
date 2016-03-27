@@ -8,9 +8,9 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
+import net.seabears.game.entities.StaticShader;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Renderer;
-import net.seabears.game.shaders.StaticShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;

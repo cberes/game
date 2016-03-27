@@ -1,4 +1,4 @@
-package net.seabears.game.render;
+package net.seabears.game.entities;
 
 import java.util.List;
 import java.util.Map;
@@ -9,10 +9,10 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import net.seabears.game.entities.Entity;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
-import net.seabears.game.shaders.StaticShader;
+import net.seabears.game.render.MasterRenderer;
+import net.seabears.game.render.Renderer;
 import net.seabears.game.textures.ModelTexture;
 
 public class EntityRenderer implements Renderer {
