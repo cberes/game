@@ -1,9 +1,6 @@
 package net.seabears.game.render;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -13,7 +10,7 @@ import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.Light;
-import net.seabears.game.models.TexturedModel;
+import net.seabears.game.entities.normalmap.NormalMappingRenderer;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
@@ -32,49 +29,50 @@ public class MasterRenderer {
 
   private final Vector3f skyColor;
   private final EntityRenderer entityRenderer;
+  private final NormalMappingRenderer nmRenderer;
   private final TerrainRenderer terrainRenderer;
   private final SkyboxRenderer skyboxRenderer;
-  private final Map<TexturedModel, List<Entity>> entities;
 
-  public MasterRenderer(Vector3f skyColor, EntityRenderer renderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer) {
+  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer) {
     this.skyColor = skyColor;
-    this.entityRenderer = renderer;
+    this.entityRenderer = entityRenderer;
+    this.nmRenderer = nmRenderer;
     this.terrainRenderer = terrainRenderer;
     this.skyboxRenderer = skyboxRenderer;
-    this.entities = new HashMap<>();
     enableCulling();
   }
 
-  public void prepare() {
+  public void render(List<Entity> entities, List<Entity> nmEntities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {
+    // prepare
     GL11.glEnable(GL11.GL_DEPTH_TEST);
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
     GL11.glClearColor(skyColor.x, skyColor.y, skyColor.z, 1.0f);
-  }
 
-  public void add(Entity entity) {
-    TexturedModel model = entity.getModel();
-    if (!entities.containsKey(model)) {
-      entities.put(model, new ArrayList<>());
-    }
-    entities.get(model).add(entity);
-  }
-
-  public void render(List<Entity> entities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {
-    entities.forEach(this::add);
-    prepare();
-    render(terrains, lights, skybox, camera, clippingPlane);
-    this.entities.clear();
-  }
-
-  private void render(List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {
     // entities
-    entityRenderer.getShader().start();
-    entityRenderer.getShader().loadClippingPlane(clippingPlane);
-    entityRenderer.getShader().loadLights(lights);
-    entityRenderer.getShader().loadSky(skyColor);
-    entityRenderer.getShader().loadViewMatrix(camera);
-    entityRenderer.render(entities);
-    entityRenderer.getShader().stop();
+    if (!entities.isEmpty()) {
+      final EntitiesByTexture e = new EntitiesByTexture();
+      e.addAll(entities);
+      entityRenderer.getShader().start();
+      entityRenderer.getShader().loadClippingPlane(clippingPlane);
+      entityRenderer.getShader().loadLights(lights);
+      entityRenderer.getShader().loadSky(skyColor);
+      entityRenderer.getShader().loadViewMatrix(camera);
+      entityRenderer.render(e.get());
+      entityRenderer.getShader().stop();
+    }
+
+    // normal-mapped entities
+    if (!nmEntities.isEmpty()) {
+      final EntitiesByTexture e = new EntitiesByTexture();
+      e.addAll(nmEntities);
+      nmRenderer.getShader().start();
+      nmRenderer.getShader().loadClippingPlane(clippingPlane);
+      nmRenderer.getShader().loadLights(lights, camera);
+      nmRenderer.getShader().loadSky(skyColor);
+      nmRenderer.getShader().loadViewMatrix(camera);
+      nmRenderer.render(e.get());
+      nmRenderer.getShader().stop();
+    }
 
     // terrain
     terrainRenderer.getShader().start();

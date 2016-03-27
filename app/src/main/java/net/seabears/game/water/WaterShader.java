@@ -9,7 +9,6 @@ import org.joml.Matrix4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
-import net.seabears.game.entities.StaticShader;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.util.ViewMatrix;
 
@@ -40,7 +39,7 @@ public class WaterShader extends ShaderProgram {
 
   @Override
   protected void bindAttributes() {
-    bindAttribute(StaticShader.ATTR_POSITION, "position");
+    bindAttribute(ATTR_POSITION, "position");
   }
 
   @Override

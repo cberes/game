@@ -6,7 +6,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import net.seabears.game.entities.Camera;
-import net.seabears.game.entities.StaticShader;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ViewMatrix;
@@ -40,7 +39,7 @@ public class SkyboxShader extends ShaderProgram {
 
   @Override
   protected void bindAttributes() {
-    super.bindAttribute(StaticShader.ATTR_POSITION, "position");
+    super.bindAttribute(ATTR_POSITION, "position");
   }
 
   public void loadBlendFactor(float factor) {

@@ -8,9 +8,9 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import net.seabears.game.entities.StaticShader;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Renderer;
+import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
@@ -35,16 +35,16 @@ public class TerrainRenderer implements Renderer {
     for (Terrain terrain : terrains) {
       final RawModel model = terrain.getModel();
       GL30.glBindVertexArray(model.getVaoId());
-      GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
-      GL20.glEnableVertexAttribArray(StaticShader.ATTR_TEXTURE);
-      GL20.glEnableVertexAttribArray(StaticShader.ATTR_NORMAL);
+      GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_POSITION);
+      GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_TEXTURE);
+      GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_NORMAL);
       bindTextures(terrain);
       shader.loadTexture(new ModelTexture(0, 0.0f, 1.0f));
       shader.loadTransformationMatrix(terrain);
       GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-      GL20.glDisableVertexAttribArray(StaticShader.ATTR_POSITION);
-      GL20.glDisableVertexAttribArray(StaticShader.ATTR_TEXTURE);
-      GL20.glDisableVertexAttribArray(StaticShader.ATTR_NORMAL);
+      GL20.glDisableVertexAttribArray(ShaderProgram.ATTR_POSITION);
+      GL20.glDisableVertexAttribArray(ShaderProgram.ATTR_TEXTURE);
+      GL20.glDisableVertexAttribArray(ShaderProgram.ATTR_NORMAL);
       GL30.glBindVertexArray(0);
     }
   }

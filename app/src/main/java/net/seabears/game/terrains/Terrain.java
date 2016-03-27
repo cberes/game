@@ -136,7 +136,7 @@ public class Terrain {
         indices[pointer++] = bottomRight;
       }
     }
-    return loader.loadToVao(vertices, textureCoords, normals, indices);
+    return loader.loadToVao(vertices, textureCoords, normals, null, indices);
   }
 
   private Vector3f getNormal(int x, int y, BufferedImage heightMap) {

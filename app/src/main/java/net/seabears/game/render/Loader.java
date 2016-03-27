@@ -26,6 +26,7 @@ import org.lwjgl.opengl.GL30;
 import de.matthiasmann.twl.utils.PNGDecoder;
 import net.seabears.game.entities.StaticShader;
 import net.seabears.game.models.RawModel;
+import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.textures.TextureData;
 import net.seabears.game.util.ModelData;
 
@@ -40,16 +41,19 @@ public class Loader implements AutoCloseable {
   }
 
   public RawModel loadToVao(ModelData data) {
-      return loadToVao(data.getVertices(), data.getTextureCoords(), data.getNormals(), data.getIndices());
+      return loadToVao(data.getVertices(), data.getTextureCoords(), data.getNormals(), data.getTangents(), data.getIndices());
   }
 
-  public RawModel loadToVao(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
+  public RawModel loadToVao(float[] positions, float[] textureCoords, float[] normals, float[] tangents, int[] indices) {
     final int vaoId = createVao();
     vaos.add(vaoId);
     bindIndicesBuffer(indices);
-    storeDataInAttributeList(StaticShader.ATTR_POSITION, 3, positions);
-    storeDataInAttributeList(StaticShader.ATTR_TEXTURE, 2, textureCoords);
-    storeDataInAttributeList(StaticShader.ATTR_NORMAL, 3, normals);
+    storeDataInAttributeList(ShaderProgram.ATTR_POSITION, 3, positions);
+    storeDataInAttributeList(ShaderProgram.ATTR_TEXTURE, 2, textureCoords);
+    storeDataInAttributeList(ShaderProgram.ATTR_NORMAL, 3, normals);
+    if (tangents != null) {
+      storeDataInAttributeList(ShaderProgram.ATTR_TANGENT, 3, tangents);
+    }
     unbindVao(); // VAO remains bound until here
     return new RawModel(vaoId, indices.length);
   }

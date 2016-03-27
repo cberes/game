@@ -11,7 +11,6 @@ import org.joml.Vector4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
-import net.seabears.game.entities.StaticShader;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
@@ -49,9 +48,9 @@ public class TerrainShader extends ShaderProgram {
 
   @Override
   protected void bindAttributes() {
-    super.bindAttribute(StaticShader.ATTR_POSITION, "position");
-    super.bindAttribute(StaticShader.ATTR_TEXTURE, "textureCoords");
-    super.bindAttribute(StaticShader.ATTR_NORMAL, "normal");
+    super.bindAttribute(ATTR_POSITION, "position");
+    super.bindAttribute(ATTR_TEXTURE, "textureCoords");
+    super.bindAttribute(ATTR_NORMAL, "normal");
   }
 
   @Override

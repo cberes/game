@@ -34,6 +34,8 @@ import net.seabears.game.entities.EntityTexture;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.Player;
 import net.seabears.game.entities.StaticShader;
+import net.seabears.game.entities.normalmap.NormalMappingRenderer;
+import net.seabears.game.entities.normalmap.NormalMappingShader;
 import net.seabears.game.guis.GuiBuilder;
 import net.seabears.game.guis.GuiRenderer;
 import net.seabears.game.guis.GuiShader;
@@ -65,6 +67,7 @@ import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 import net.seabears.game.util.Volume;
+import net.seabears.game.util.normalmap.NormalMappedObjFileLoader;
 import net.seabears.game.water.Water;
 import net.seabears.game.water.WaterFrameBuffers;
 import net.seabears.game.water.WaterRenderer;
@@ -134,13 +137,15 @@ public class Main {
     final ProjectionMatrix projMatrix = new ProjectionMatrix(display.getWidth(), display.getHeight(), FOV, NEAR_PLANE, FAR_PLANE);
     final StaticShader shader = new StaticShader(MAX_LIGHTS);
     final EntityRenderer entityRenderer = new EntityRenderer(shader, projMatrix.toMatrix());
+    final NormalMappingShader nmShader = new NormalMappingShader(MAX_LIGHTS);
+    final NormalMappingRenderer nmRenderer = new NormalMappingRenderer(nmShader, projMatrix.toMatrix());
     final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
     final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader,
         new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
-    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, terrainRenderer, skyboxRenderer);
+    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer);
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
 
     /*
@@ -168,6 +173,8 @@ public class Main {
         new ModelTexture(loader.loadTexture("lowPolyTree"), 2));
     final TexturedModel fern = new TexturedModel(loader.loadToVao(ObjFileLoader.load("fern")),
         new ModelTexture(loader.loadTexture("fern"), 2, true, true));
+    final TexturedModel barrel = new TexturedModel(loader.loadToVao(NormalMappedObjFileLoader.load("barrel")),
+        new ModelTexture(loader.loadTexture("barrel"), loader.loadTexture("barrel-normal"), 1, 0.5f, 10.0f, false, false));
 
     /*
      * textures that can be added to the world
@@ -213,6 +220,12 @@ public class Main {
     for (int i = 0; i < 10; ++i) {
       entities.add(new Entity(new EntityTexture(stall), position(rand, terrains), new Vector3f(0.0f, rand.nextInt(360), 0.0f), 1.0f));
     }
+
+    /*
+     * normal-mapped entities
+     */
+    final List<Entity> nmEntities = new ArrayList<>();
+    nmEntities.add(new Entity(new EntityTexture(barrel), new Vector3f(0, 10, -75), new Vector3f(), 1.0f));
 
     /*
      * water
@@ -273,7 +286,7 @@ public class Main {
       // TODO something something to resize and rotate the selected entity
 
       // render scene
-      final Consumer<Vector4f> renderAction = p -> renderer.render(entities, terrains, lights, skybox, camera, p);
+      final Consumer<Vector4f> renderAction = p -> renderer.render(entities, nmEntities, terrains, lights, skybox, camera, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
       renderAction.accept(HIGH_PLANE);
       waterRenderer.render(waterTiles, lights, camera);
@@ -282,7 +295,7 @@ public class Main {
       // I don't know if the stuff in here is necessary
       display.update();
     }
-    return Arrays.asList(guiRenderer, waterRenderer, entityRenderer, terrainRenderer, skyboxRenderer);
+    return Arrays.asList(guiRenderer, waterRenderer, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer);
   }
 
   private static Vector3f position(Random rand, List<Terrain> terrains) {

@@ -16,10 +16,6 @@ import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
 public class StaticShader extends ShaderProgram {
-  public static final int ATTR_POSITION = 0;
-  public static final int ATTR_TEXTURE = 1;
-  public static final int ATTR_NORMAL = 2;
-
   private final int lights;
   private int locationClippingPlane;
   private int locationFakeLighting;

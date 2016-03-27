@@ -16,6 +16,11 @@ import org.lwjgl.opengl.GL20;
 import net.seabears.game.entities.Light;
 
 public abstract class ShaderProgram implements AutoCloseable {
+  public static final int ATTR_POSITION = 0;
+  public static final int ATTR_TEXTURE = 1;
+  public static final int ATTR_NORMAL = 2;
+  public static final int ATTR_TANGENT = 3;
+
   protected static final String SHADER_ROOT = "src/main/shaders/";
   protected static final Light OFF_LIGHT = new Light(new Vector3f(), new Vector3f());
 

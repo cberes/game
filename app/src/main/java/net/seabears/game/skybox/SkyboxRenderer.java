@@ -8,10 +8,10 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import net.seabears.game.entities.StaticShader;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.Renderer;
+import net.seabears.game.shaders.ShaderProgram;
 
 public class SkyboxRenderer implements Renderer {
   public static int loadCube(Loader loader, String dir) throws IOException {
@@ -89,14 +89,14 @@ public class SkyboxRenderer implements Renderer {
 
   public void render(Skybox skybox) {
     GL30.glBindVertexArray(cube.getVaoId());
-    GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
+    GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_POSITION);
     GL13.glActiveTexture(GL13.GL_TEXTURE0);
     GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, textures[0]);
     GL13.glActiveTexture(GL13.GL_TEXTURE1);
     GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, textures[1]);
     shader.loadBlendFactor(skybox.getBlendFactor());
     GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, cube.getVertexCount());
-    GL20.glDisableVertexAttribArray(StaticShader.ATTR_POSITION);
+    GL20.glDisableVertexAttribArray(ShaderProgram.ATTR_POSITION);
     GL30.glBindVertexArray(0);
   }
 
