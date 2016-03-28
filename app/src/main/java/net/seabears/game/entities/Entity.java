@@ -1,10 +1,11 @@
 package net.seabears.game.entities;
 
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import net.seabears.game.models.TexturedModel;
 
-public class Entity {
+public class Entity extends TextureAtlasItem {
   private final EntityTexture model;
   private final Vector3f position;
   private final Vector3f rotation;
@@ -52,15 +53,8 @@ public class Entity {
     return model.getModel();
   }
 
-  public float getTextureOffsetX() {
-    final int column = model.getTextureIndex() % model.getModel().getTexture().getRows();
-    return (float) column / model.getModel().getTexture().getRows();
-  }
-
-  public float getTextureOffsetY() {
-    // this integer division is intentional
-    final int row = model.getTextureIndex() / model.getModel().getTexture().getRows();
-    return (float) row / model.getModel().getTexture().getRows();
+  public Vector2f getTextureOffset() {
+      return super.getTextureOffset(model.getTextureIndex(), model.getModel().getTexture().getRows());
   }
 
   public Vector3f getPosition() {

@@ -1,10 +1,25 @@
 #version 140
 
-in vec2 position;
-
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
+uniform vec2 textureOffset;
+uniform vec2 textureOffsetNext;
+uniform float textureRows;
+uniform float textureBlend;
+
+in vec2 position;
+
+out float blend;
+out vec2 textureCoords;
+out vec2 textureCoordsNext;
 
 void main(void) {
+	vec2 baseTextureCoords = position + vec2(0.5, 0.5);
+	baseTextureCoords.y = 1.0 - baseTextureCoords.y;
+	baseTextureCoords = baseTextureCoords / textureRows;
+	textureCoords = baseTextureCoords + textureOffset;
+	textureCoordsNext = baseTextureCoords + textureOffsetNext;
+	blend = textureBlend;
+
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 0.0, 1.0);
 }

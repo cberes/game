@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -14,7 +13,6 @@ import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.textures.ModelTexture;
-import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
 public class ParticleShader extends ShaderProgram {
@@ -28,8 +26,10 @@ public class ParticleShader extends ShaderProgram {
   private int locationReflectivity;
   private int locationShineDamper;
   private int locationSkyColor;
+  private int locationTextureBlend;
   private int locationTextureRows;
   private int locationTextureOffset;
+  private int locationTextureOffsetNext;
   private int locationTransformationMatrix;
   private int locationModelViewMatrix;
   private int locationViewMatrix;
@@ -57,8 +57,10 @@ public class ParticleShader extends ShaderProgram {
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
     locationSkyColor = super.getUniformLocation("skyColor");
+    locationTextureBlend = super.getUniformLocation("textureBlend");
     locationTextureRows = super.getUniformLocation("textureRows");
     locationTextureOffset = super.getUniformLocation("textureOffset");
+    locationTextureOffsetNext = super.getUniformLocation("textureOffsetNext");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationModelViewMatrix = super.getUniformLocation("modelViewMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
@@ -90,7 +92,6 @@ public class ParticleShader extends ShaderProgram {
     super.loadFloat(locationFakeLighting, texture.isFakeLighting());
     super.loadFloat(locationReflectivity, texture.getReflectivity());
     super.loadFloat(locationShineDamper, texture.getShineDamper());
-    super.loadFloat(locationTextureRows, texture.getRows());
   }
 
   public void loadParticle(Particle particle, Matrix4f viewMatrix) {
@@ -109,9 +110,11 @@ public class ParticleShader extends ShaderProgram {
     modelMatrix.m22 = viewMatrix.m22;
     modelMatrix.rotate((float) Math.toRadians(particle.getRotation()), new Vector3f(0.0f, 0.0f, 1.0f));
     modelMatrix.scale(particle.getScale());
-    super.loadMatrix(locationModelViewMatrix, viewMatrix.mul(modelMatrix, new Matrix4f()));//modelMatrix.mul(viewMatrix));
-//    loadTransformationMatrix(new TransformationMatrix(entity.getPosition(), entity.getRotation(), entity.getScale()).toMatrix());
-//    super.loadFloat(locationTextureOffset, new Vector2f(entity.getTextureOffsetX(), entity.getTextureOffsetY()));
+    super.loadMatrix(locationModelViewMatrix, viewMatrix.mul(modelMatrix, new Matrix4f()));
+    super.loadFloat(locationTextureBlend, particle.getBlend());
+    super.loadFloat(locationTextureRows, particle.getTexture().getRows());
+    super.loadFloat(locationTextureOffset, particle.getTextureOffset());
+    super.loadFloat(locationTextureOffsetNext, particle.getTextureOffsetNext());
   }
 
   public void loadTransformationMatrix(Matrix4f matrix) {

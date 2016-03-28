@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +60,7 @@ import net.seabears.game.models.TexturedModel;
 import net.seabears.game.particles.ParticleMaster;
 import net.seabears.game.particles.ParticleRenderer;
 import net.seabears.game.particles.ParticleShader;
+import net.seabears.game.particles.ParticleTexture;
 import net.seabears.game.particles.SpiralParticleSystem;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
@@ -247,7 +247,8 @@ public class Main {
      * particles
      */
     final ParticleMaster particles = new ParticleMaster(fps);
-    final SpiralParticleSystem system = new SpiralParticleSystem(player, 1.0f, GRAVITY, 4.0f);
+        final SpiralParticleSystem system = new SpiralParticleSystem(
+                new ParticleTexture(loader.loadTexture("flare-particle"), 4), player, 1.0f, GRAVITY, 2.0f);
 
     /*
      * water
@@ -319,16 +320,14 @@ public class Main {
       // TODO something something to resize and rotate the selected entity
 
       // particles
-      particles.update(system.generate(fps.get()));
+      particles.update(system.generate(fps.get()), camera);
 
       // render scene
       final Consumer<Vector4f> renderAction = p -> renderer.render(entities, nmEntities, terrains, lights, skybox, camera, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
       renderAction.accept(HIGH_PLANE);
       waterRenderer.render(waterTiles, lights, camera);
-      if (!particles.getParticles().isEmpty()) {
-        particleRenderer.render(Collections.singletonMap(null, particles.getParticles()), camera);
-      }
+      particleRenderer.render(particles.getParticles(), camera);
       guiRenderer.render(guis);
       textMaster.render();
 

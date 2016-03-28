@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -103,7 +102,7 @@ public class NormalMappingShader extends ShaderProgram {
 
     public void loadEntity(Entity entity) {
       loadTransformationMatrix(new TransformationMatrix(entity.getPosition(), entity.getRotation(), entity.getScale()).toMatrix());
-      super.loadFloat(locationTextureOffset, new Vector2f(entity.getTextureOffsetX(), entity.getTextureOffsetY()));
+      super.loadFloat(locationTextureOffset, entity.getTextureOffset());
     }
 
     public void loadTransformationMatrix(Matrix4f matrix) {

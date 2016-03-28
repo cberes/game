@@ -5,12 +5,12 @@ import java.util.Map;
 
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.models.RawModel;
-import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.ShaderProgram;
@@ -35,15 +35,19 @@ public class ParticleRenderer implements Renderer {
     return shader;
   }
 
-  public void render(Map<TexturedModel, List<Particle>> particles, Camera camera) {
+  public void render(Map<ParticleTexture, List<Particle>> particles, Camera camera) {
+    if (particles.isEmpty()) {
+      return;
+    }
+
     final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
     shader.start();
     GL30.glBindVertexArray(quad.getVaoId());
     GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_POSITION);
     GL11.glEnable(GL11.GL_BLEND);
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
     GL11.glDepthMask(false);
-    for (Map.Entry<TexturedModel, List<Particle>> entry : particles.entrySet()) {
+    for (Map.Entry<ParticleTexture, List<Particle>> entry : particles.entrySet()) {
+      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, entry.getKey().getBlendFunc());
 //      final TexturedModel model = entry.getKey();
 //      final RawModel rawModel = model.getRawModel();
 //      final ModelTexture texture = model.getTexture();
@@ -53,8 +57,8 @@ public class ParticleRenderer implements Renderer {
 //        MasterRenderer.disableCulling();
 //      }
 //      shader.loadTexture(model.getTexture());
-//      GL13.glActiveTexture(GL13.GL_TEXTURE0);
-//      GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTextureId());
+      GL13.glActiveTexture(GL13.GL_TEXTURE0);
+      GL11.glBindTexture(GL11.GL_TEXTURE_2D, entry.getKey().getTextureId());
       for (Particle particle : entry.getValue()) {
         shader.loadParticle(particle, viewMatrix);
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
