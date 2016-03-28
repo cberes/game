@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import net.seabears.game.guis.fonts.creator.FontType;
-import net.seabears.game.guis.fonts.creator.GuiText;
 import net.seabears.game.guis.fonts.creator.TextMeshData;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;

@@ -18,9 +18,9 @@ public class MetaFile {
   private static final int PAD_LEFT = 1;
   private static final int PAD_BOTTOM = 2;
   private static final int PAD_RIGHT = 3;
-  private static final int DESIRED_PADDING = 3;
 
   private final double aspectRatio;
+  private final int desiredPadding;
   private final Map<Integer, Character> metaData = new HashMap<Integer, Character>();
   private final Map<String, String> values = new HashMap<String, String>();
   private double verticalPerPixelSize;
@@ -36,8 +36,9 @@ public class MetaFile {
    * @param file - the font file.
    * @throws IOException if I/O error occurs
    */
-  public MetaFile(File file, int width, int height) throws IOException {
+  public MetaFile(File file, int width, int height, int desiredPadding) throws IOException {
     this.aspectRatio = width / (double) height;
+    this.desiredPadding = desiredPadding;
     try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
       loadPaddingData(reader);
       loadLineSizes(reader);
@@ -157,16 +158,16 @@ public class MetaFile {
       this.spaceWidth = (getValueOfVariable("xadvance") - paddingWidth) * horizontalPerPixelSize;
       return null;
     }
-    double xTex = ((double) getValueOfVariable("x") + (padding[PAD_LEFT] - DESIRED_PADDING)) / imageSize;
-    double yTex = ((double) getValueOfVariable("y") + (padding[PAD_TOP] - DESIRED_PADDING)) / imageSize;
-    int width = getValueOfVariable("width") - (paddingWidth - (2 * DESIRED_PADDING));
-    int height = getValueOfVariable("height") - ((paddingHeight) - (2 * DESIRED_PADDING));
+    double xTex = ((double) getValueOfVariable("x") + (padding[PAD_LEFT] - desiredPadding)) / imageSize;
+    double yTex = ((double) getValueOfVariable("y") + (padding[PAD_TOP] - desiredPadding)) / imageSize;
+    int width = getValueOfVariable("width") - (paddingWidth - (2 * desiredPadding));
+    int height = getValueOfVariable("height") - ((paddingHeight) - (2 * desiredPadding));
     double quadWidth = width * horizontalPerPixelSize;
     double quadHeight = height * verticalPerPixelSize;
     double xTexSize = (double) width / imageSize;
     double yTexSize = (double) height / imageSize;
-    double xOff = (getValueOfVariable("xoffset") + padding[PAD_LEFT] - DESIRED_PADDING) * horizontalPerPixelSize;
-    double yOff = (getValueOfVariable("yoffset") + (padding[PAD_TOP] - DESIRED_PADDING)) * verticalPerPixelSize;
+    double xOff = (getValueOfVariable("xoffset") + padding[PAD_LEFT] - desiredPadding) * horizontalPerPixelSize;
+    double yOff = (getValueOfVariable("yoffset") + (padding[PAD_TOP] - desiredPadding)) * verticalPerPixelSize;
     double xAdvance = (getValueOfVariable("xadvance") - paddingWidth) * horizontalPerPixelSize;
     return new Character(id, xTex, yTex, xTexSize, yTexSize, xOff, yOff, quadWidth, quadHeight, xAdvance);
   }

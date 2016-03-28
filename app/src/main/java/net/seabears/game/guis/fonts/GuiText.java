@@ -1,7 +1,9 @@
-package net.seabears.game.guis.fonts.creator;
+package net.seabears.game.guis.fonts;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+
+import net.seabears.game.guis.fonts.creator.FontType;
 
 /**
  * Represents a piece of text in the game.
@@ -11,48 +13,37 @@ import org.joml.Vector3f;
  */
 public class GuiText {
   private final String textString;
-  private final float fontSize;
-  private final FontType font;
-  private final Vector3f color;
   private final Vector2f position;
   private final float lineMaxSize;
+  private final FontType font;
+  private final float fontSize;
   private final boolean centerText;
+  private final TextAttr attr;
+  private final TextAttr borderAttr;
   private int textMeshVao;
   private int vertexCount;
   private int numberOfLines;
 
-  public GuiText(String text, float fontSize, FontType font, Vector2f position, float maxLineLength) {
-    this(text, fontSize, font, position, maxLineLength, false);
+  public GuiText(String textString, Vector2f position, float lineMaxSize, boolean centerText,
+      FontType font, float fontSize) {
+    this(textString, position, lineMaxSize, centerText, font, fontSize, new TextAttr(new Vector3f(), 0.5f, 0.1f));
   }
 
-  public GuiText(String text, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
-    this(text, fontSize, font, position, maxLineLength, centered, new Vector3f());
+  public GuiText(String textString, Vector2f position, float lineMaxSize, boolean centerText,
+      FontType font, float fontSize, TextAttr attr) {
+    this(textString, position, lineMaxSize, centerText, font, fontSize, attr, new TextAttr(new Vector3f(), 0.0f, 0.0f));
   }
 
-  /**
-   * Creates a new text, loads the text's quads into a VAO, and adds the text to the screen.
-   * 
-   * @param text - the text.
-   * @param fontSize - the font size of the text, where a font size of 1 is the default size.
-   * @param font - the font that this text should use.
-   * @param position - the position on the screen where the top left corner of the text should be
-   *        rendered. The top left corner of the screen is (0, 0) and the bottom right is (1, 1).
-   * @param maxLineLength - basically the width of the virtual page in terms of screen width (1 is
-   *        full screen width, 0.5 is half the width of the screen, etc.) Text cannot go off the
-   *        edge of the page, so if the text is longer than this length it will go onto the next
-   *        line. When text is centered it is centered into the middle of the line, based on this
-   *        line length value.
-   * @param centered - whether the text should be centered or not.
-   */
-  public GuiText(String text, float fontSize, FontType font, Vector2f position, float maxLineLength,
-      boolean centered, Vector3f color) {
-    this.textString = text;
-    this.fontSize = fontSize;
-    this.font = font;
-    this.color = color;
+  public GuiText(String textString, Vector2f position, float lineMaxSize, boolean centerText,
+      FontType font, float fontSize, TextAttr attr, TextAttr borderAttr) {
+    this.textString = textString;
     this.position = position;
-    this.lineMaxSize = maxLineLength;
-    this.centerText = centered;
+    this.lineMaxSize = lineMaxSize;
+    this.font = font;
+    this.fontSize = fontSize;
+    this.centerText = centerText;
+    this.attr = attr;
+    this.borderAttr = borderAttr;
   }
 
   /**
@@ -74,7 +65,7 @@ public class GuiText {
    * 
    * @param number
    */
-  protected void setNumberOfLines(int number) {
+  public void setNumberOfLines(int number) {
     this.numberOfLines = number;
   }
 
@@ -83,13 +74,6 @@ public class GuiText {
    */
   public FontType getFont() {
     return font;
-  }
-
-  /**
-   * @return the color of the text.
-   */
-  public Vector3f getColor() {
-    return color;
   }
 
   /**
@@ -126,29 +110,36 @@ public class GuiText {
   /**
    * @return the font size of the text (a font size of 1 is normal).
    */
-  protected float getFontSize() {
+  public float getFontSize() {
     return fontSize;
   }
 
   /**
    * @return {@code true} if the text should be centered.
    */
-  protected boolean isCentered() {
+  public boolean isCentered() {
     return centerText;
   }
 
   /**
    * @return The maximum length of a line of this text.
    */
-  protected float getMaxLineSize() {
+  public float getMaxLineSize() {
     return lineMaxSize;
   }
 
   /**
    * @return The string of text.
    */
-  protected String getTextString() {
+  public String getTextString() {
     return textString;
   }
 
+  public TextAttr getAttr() {
+    return attr;
+  }
+
+  public TextAttr getBorderAttr() {
+    return borderAttr;
+  }
 }

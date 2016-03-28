@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import net.seabears.game.guis.fonts.creator.FontType;
-import net.seabears.game.guis.fonts.creator.GuiText;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.ShaderProgram;
 

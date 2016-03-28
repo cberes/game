@@ -3,6 +3,8 @@ package net.seabears.game.guis.fonts.creator;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.seabears.game.guis.fonts.GuiText;
+
 public class TextMeshCreator {
   protected static final double LINE_HEIGHT = 0.03f;
   protected static final int SPACE_ASCII = 32;

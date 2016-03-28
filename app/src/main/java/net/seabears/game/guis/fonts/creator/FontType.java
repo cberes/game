@@ -1,5 +1,7 @@
 package net.seabears.game.guis.fonts.creator;
 
+import net.seabears.game.guis.fonts.GuiText;
+
 /**
  * Represents a font. It holds the font's texture atlas as well as having the ability to create the
  * quad vertices for any text using this font.

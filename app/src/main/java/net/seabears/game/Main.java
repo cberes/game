@@ -43,9 +43,10 @@ import net.seabears.game.guis.GuiShader;
 import net.seabears.game.guis.GuiTexture;
 import net.seabears.game.guis.fonts.FontRenderer;
 import net.seabears.game.guis.fonts.FontShader;
+import net.seabears.game.guis.fonts.GuiText;
+import net.seabears.game.guis.fonts.TextAttr;
 import net.seabears.game.guis.fonts.TextMaster;
 import net.seabears.game.guis.fonts.creator.FontType;
-import net.seabears.game.guis.fonts.creator.GuiText;
 import net.seabears.game.guis.fonts.creator.MetaFile;
 import net.seabears.game.guis.fonts.creator.TextMeshCreator;
 import net.seabears.game.input.CameraPanTilt;
@@ -244,10 +245,12 @@ public class Main {
     /*
      * text
      */
-    final FontType liberation = new FontType(loader.loadTexture("fonts/liberation"), new TextMeshCreator(new MetaFile(new File("src/main/res/fonts/liberation.fnt"), display.getWidth(), display.getHeight())));
+    final FontType liberation = new FontType(loader.loadTexture("fonts/liberation"), new TextMeshCreator(new MetaFile(new File("src/main/res/fonts/liberation.fnt"), display.getWidth(), display.getHeight(), 8)));
     final List<GuiText> text = new ArrayList<>();
     final TextMaster textMaster = new TextMaster(loader, new FontRenderer(new FontShader()));
-    text.add(new GuiText("Winnie Land!", 1, liberation, new Vector2f(0.5f), 0.5f, false, new Vector3f(0.0f, 1.0f, 1.0f)));
+    text.add(new GuiText("Winnie Land!", new Vector2f(0.5f), 0.5f, false, liberation, 3.0f,
+        new TextAttr(new Vector3f(0.0f, 1.0f, 1.0f), 0.5f, 0.1f),
+        new TextAttr(new Vector3f(1.0f, 0.0f, 1.0f), 0.4f, 0.5f, new Vector2f(0.006f))));
     text.forEach(textMaster::load);
 
     /*
