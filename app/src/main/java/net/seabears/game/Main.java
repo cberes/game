@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +58,10 @@ import net.seabears.game.input.MousePicker;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.input.Scroll;
 import net.seabears.game.models.TexturedModel;
+import net.seabears.game.particles.ParticleMaster;
+import net.seabears.game.particles.ParticleRenderer;
+import net.seabears.game.particles.ParticleShader;
+import net.seabears.game.particles.SpiralParticleSystem;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
@@ -148,6 +153,8 @@ public class Main {
     final EntityRenderer entityRenderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final NormalMappingShader nmShader = new NormalMappingShader(MAX_LIGHTS);
     final NormalMappingRenderer nmRenderer = new NormalMappingRenderer(nmShader, projMatrix.toMatrix());
+    final ParticleShader particleShader = new ParticleShader(MAX_LIGHTS);
+    final ParticleRenderer particleRenderer = new ParticleRenderer(loader, particleShader, projMatrix.toMatrix(), 0.5f);
     final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
     final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader,
@@ -237,6 +244,12 @@ public class Main {
     nmEntities.add(new Entity(new EntityTexture(barrel), new Vector3f(0, 10, -75), new Vector3f(), 1.0f));
 
     /*
+     * particles
+     */
+    final ParticleMaster particles = new ParticleMaster(fps);
+    final SpiralParticleSystem system = new SpiralParticleSystem(player, 1.0f, GRAVITY, 4.0f);
+
+    /*
      * water
      */
     final List<WaterTile> waterTiles = new ArrayList<>();
@@ -305,18 +318,24 @@ public class Main {
       }
       // TODO something something to resize and rotate the selected entity
 
+      // particles
+      particles.update(system.generate(fps.get()));
+
       // render scene
       final Consumer<Vector4f> renderAction = p -> renderer.render(entities, nmEntities, terrains, lights, skybox, camera, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
       renderAction.accept(HIGH_PLANE);
       waterRenderer.render(waterTiles, lights, camera);
+      if (!particles.getParticles().isEmpty()) {
+        particleRenderer.render(Collections.singletonMap(null, particles.getParticles()), camera);
+      }
       guiRenderer.render(guis);
       textMaster.render();
 
       // I don't know if the stuff in here is necessary
       display.update();
     }
-    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer);
+    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer);
   }
 
   private static Vector3f position(Random rand, List<Terrain> terrains) {
