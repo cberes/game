@@ -73,7 +73,7 @@ public class SkyboxRenderer implements Renderer {
         -size, -size,  size,
          size, -size,  size
     };
-    this.cube = loader.loadToVao(vertices, 3);
+    this.cube = loader.loadToVao(vertices, 3, null);
     this.textures = new int[] {textureDay, textureNight};
     this.shader = shader;
     this.shader.init();

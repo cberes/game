@@ -25,6 +25,7 @@ import org.lwjgl.opengl.GL30;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import net.seabears.game.entities.StaticShader;
+import net.seabears.game.guis.fonts.creator.TextMeshData;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.textures.TextureData;
@@ -44,6 +45,10 @@ public class Loader implements AutoCloseable {
       return loadToVao(data.getVertices(), data.getTextureCoords(), data.getNormals(), data.getTangents(), data.getIndices());
   }
 
+  public RawModel loadToVao(TextMeshData data) {
+      return loadToVao(data.getVertices(), 2, data.getTextureCoords());
+  }
+
   public RawModel loadToVao(float[] positions, float[] textureCoords, float[] normals, float[] tangents, int[] indices) {
     final int vaoId = createVao();
     vaos.add(vaoId);
@@ -59,13 +64,16 @@ public class Loader implements AutoCloseable {
   }
 
   public RawModel loadToVao(float[] positions) {
-    return loadToVao(positions, 2);
+    return loadToVao(positions, 2, null);
   }
 
-  public RawModel loadToVao(float[] positions, int dimensions) {
+  public RawModel loadToVao(float[] positions, int dimensions, float[] textureCoords) {
     final int vaoId = createVao();
     vaos.add(vaoId);
     storeDataInAttributeList(StaticShader.ATTR_POSITION, dimensions, positions);
+    if (textureCoords != null) {
+      storeDataInAttributeList(ShaderProgram.ATTR_TEXTURE, 2, textureCoords);
+    }
     unbindVao();
     return new RawModel(vaoId, positions.length / dimensions);
   }

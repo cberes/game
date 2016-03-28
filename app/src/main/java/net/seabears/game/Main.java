@@ -5,6 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,13 @@ import net.seabears.game.guis.GuiBuilder;
 import net.seabears.game.guis.GuiRenderer;
 import net.seabears.game.guis.GuiShader;
 import net.seabears.game.guis.GuiTexture;
+import net.seabears.game.guis.fonts.FontRenderer;
+import net.seabears.game.guis.fonts.FontShader;
+import net.seabears.game.guis.fonts.TextMaster;
+import net.seabears.game.guis.fonts.creator.FontType;
+import net.seabears.game.guis.fonts.creator.GuiText;
+import net.seabears.game.guis.fonts.creator.MetaFile;
+import net.seabears.game.guis.fonts.creator.TextMeshCreator;
 import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
 import net.seabears.game.input.GuiPicker;
@@ -234,6 +242,15 @@ public class Main {
     waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 115, -60, -2, 25, 30));
 
     /*
+     * text
+     */
+    final FontType liberation = new FontType(loader.loadTexture("fonts/liberation"), new TextMeshCreator(new MetaFile(new File("src/main/res/fonts/liberation.fnt"), display.getWidth(), display.getHeight())));
+    final List<GuiText> text = new ArrayList<>();
+    final TextMaster textMaster = new TextMaster(loader, new FontRenderer(new FontShader()));
+    text.add(new GuiText("Winnie Land!", 1, liberation, new Vector2f(0.5f), 0.5f, false, new Vector3f(0.0f, 1.0f, 1.0f)));
+    text.forEach(textMaster::load);
+
+    /*
      * GUIs
      */
     // add GUIs for models that can be added to the scene
@@ -291,11 +308,12 @@ public class Main {
       renderAction.accept(HIGH_PLANE);
       waterRenderer.render(waterTiles, lights, camera);
       guiRenderer.render(guis);
+      textMaster.render();
 
       // I don't know if the stuff in here is necessary
       display.update();
     }
-    return Arrays.asList(guiRenderer, waterRenderer, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer);
+    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer);
   }
 
   private static Vector3f position(Random rand, List<Terrain> terrains) {

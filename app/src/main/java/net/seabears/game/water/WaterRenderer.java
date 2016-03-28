@@ -30,7 +30,7 @@ public class WaterRenderer implements Renderer {
   public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId, int normalMapId, float nearPlane, float farPlane) {
     // Just x and z vertex positions here: y is set to 0 in vertex shader
     float[] vertices = {-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1};
-    this.quad = loader.loadToVao(vertices, 2);
+    this.quad = loader.loadToVao(vertices, 2, null);
     this.fbs = fbs;
     this.dudvMapId = dudvMapId;
     this.normalMapId = normalMapId;
