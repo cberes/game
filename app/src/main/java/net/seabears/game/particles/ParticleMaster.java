@@ -6,7 +6,6 @@ import java.util.Map;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.util.FpsCalc;
-import net.seabears.game.util.InsertionSort;
 
 public class ParticleMaster {
   private final List<Particle> particles;
@@ -24,8 +23,6 @@ public class ParticleMaster {
     particles.removeIf(p -> !p.update(t, camera));
     // add new particles to the front of the list so they are rendered first (and appear behind others)
     particles.addAll(0, toAdd);
-    // sort so that farthest-away particles are first
-    InsertionSort.sortDescending(particles, (a, b) -> (int) Math.signum(a.getDistance() - b.getDistance()));
   }
 
   public Map<ParticleTexture, List<Particle>> getParticles() {

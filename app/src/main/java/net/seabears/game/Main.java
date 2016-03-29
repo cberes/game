@@ -99,6 +99,7 @@ public class Main {
   private static final int MAX_LIGHTS = 4;
   private static final float MAX_TERRAIN_RANGE = 600.0f;
   private static final Vector4f HIGH_PLANE = new Vector4f(0.0f, 1.0f, 0.0f, -1000.0f);
+  private static final int MAX_PARTICLES = 10000;
 
   private static final int WATER_REFLECTION_WIDTH = 320;
   private static final int WATER_REFLECTION_HEIGHT = 180;
@@ -153,8 +154,8 @@ public class Main {
     final EntityRenderer entityRenderer = new EntityRenderer(shader, projMatrix.toMatrix());
     final NormalMappingShader nmShader = new NormalMappingShader(MAX_LIGHTS);
     final NormalMappingRenderer nmRenderer = new NormalMappingRenderer(nmShader, projMatrix.toMatrix());
-    final ParticleShader particleShader = new ParticleShader(MAX_LIGHTS);
-    final ParticleRenderer particleRenderer = new ParticleRenderer(loader, particleShader, projMatrix.toMatrix(), 0.5f);
+    final ParticleShader particleShader = new ParticleShader();
+    final ParticleRenderer particleRenderer = new ParticleRenderer(loader, particleShader, projMatrix.toMatrix(), 0.5f, MAX_PARTICLES);
     final TerrainShader terrainShader = new TerrainShader(MAX_LIGHTS);
     final TerrainRenderer terrainRenderer = new TerrainRenderer(terrainShader, projMatrix.toMatrix());
     final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader,

@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL33;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import net.seabears.game.entities.StaticShader;
@@ -33,9 +34,39 @@ import net.seabears.game.util.ModelData;
 
 public class Loader implements AutoCloseable {
   private static final String RES_ROOT = "src/main/res/";
+  private static final int FLOAT_IN_BYTES = Float.SIZE >> 3;
   private final List<Integer> vaos = new ArrayList<>();
   private final List<Integer> vbos = new ArrayList<>();
   private final List<Integer> textures = new ArrayList<>();
+
+  public int emptyVbo(int floats) {
+    final int vboId = GL15.glGenBuffers();
+    vbos.add(vboId);
+    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+    GL15.glBufferData(GL15.GL_ARRAY_BUFFER, floats * FLOAT_IN_BYTES, GL15.GL_STREAM_DRAW);
+    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+    return vboId;
+  }
+
+  public void addInstancedAttribute(int vaoId, int vboId, int attribute, int dataSize, int instancedDataLength, int offset) {
+    final int floatBytes = Float.SIZE >> 3;
+    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+    GL30.glBindVertexArray(vaoId);
+    GL20.glVertexAttribPointer(attribute, dataSize, GL11.GL_FLOAT, false, instancedDataLength * floatBytes, offset * floatBytes);
+    GL33.glVertexAttribDivisor(attribute, 1);
+    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0); // unbind VBO
+    GL30.glBindVertexArray(0); // unbind VAO
+  }
+
+  public void updateVbo(int vboId, float[] data, FloatBuffer buffer) {
+    buffer.clear();
+    buffer.put(data);
+    buffer.flip();
+    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+    GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer.capacity() * FLOAT_IN_BYTES, GL15.GL_STREAM_DRAW);
+    GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, buffer);
+    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0); // unbind VBO
+  }
 
   public BufferedImage loadImage(String filename) throws IOException {
     return ImageIO.read(new File(RES_ROOT + filename + ".png"));
