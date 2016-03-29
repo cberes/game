@@ -7,7 +7,7 @@ public class ProjectionMatrix {
 
   public ProjectionMatrix(final float width, final float height, final float fov, final float near, final float far) {
     final float aspectRatio = width / height;
-    final float yScale = (float) (aspectRatio / Math.tan(Math.toRadians(fov / 2.0f)));
+    final float yScale = (float) (1.0f / Math.tan(Math.toRadians(fov * 0.5f)));
     final float xScale = yScale / aspectRatio;
     final float frustumLength = far - near;
 

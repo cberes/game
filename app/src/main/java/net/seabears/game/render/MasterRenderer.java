@@ -11,6 +11,7 @@ import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.normalmap.NormalMappingRenderer;
+import net.seabears.game.shadows.ShadowMapMasterRenderer;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
@@ -32,14 +33,23 @@ public class MasterRenderer {
   private final NormalMappingRenderer nmRenderer;
   private final TerrainRenderer terrainRenderer;
   private final SkyboxRenderer skyboxRenderer;
+  private final ShadowMapMasterRenderer shadowRenderer;
 
-  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer) {
+  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer, ShadowMapMasterRenderer shadowRenderer) {
     this.skyColor = skyColor;
     this.entityRenderer = entityRenderer;
     this.nmRenderer = nmRenderer;
     this.terrainRenderer = terrainRenderer;
     this.skyboxRenderer = skyboxRenderer;
+    this.shadowRenderer = shadowRenderer;
     enableCulling();
+  }
+
+  public void renderShadowMap(List<Entity> entities, List<Entity> nmEntities, List<Light> lights, int displayWidth, int displayHeight) {
+      final EntitiesByTexture e = new EntitiesByTexture();
+      e.addAll(entities);
+      e.addAll(nmEntities);
+      shadowRenderer.render(e.get(), lights.get(0), displayWidth, displayHeight);
   }
 
   public void render(List<Entity> entities, List<Entity> nmEntities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {

@@ -65,6 +65,9 @@ import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.Renderer;
+import net.seabears.game.shadows.ShadowBox;
+import net.seabears.game.shadows.ShadowMapMasterRenderer;
+import net.seabears.game.shadows.ShadowShader;
 import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
@@ -162,7 +165,8 @@ public class Main {
         new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
-    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer);
+    final ShadowMapMasterRenderer shadowRenderer = new ShadowMapMasterRenderer(camera, new ShadowShader(), new ShadowBox(camera, FOV, NEAR_PLANE, display.getWidth(), display.getHeight()), display.getWidth(), display.getHeight());
+    final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
 
     /*
@@ -281,6 +285,7 @@ public class Main {
     // create final list of GUIs for the window
     List<GuiTexture> guis = new ArrayList<>();
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f), guiScale));
+    guis.add(new GuiTexture(shadowRenderer.getShadowMap(), new Vector2f(0.5f, -0.5f), new Vector2f(0.5f)));
     guis.addAll(guiBuilder.getGuis().values());
 
     // pickers
@@ -323,11 +328,11 @@ public class Main {
         });
       }
       // TODO something something to resize and rotate the selected entity
-
       // particles
       particles.update(system.generate(fps.get()), camera);
 
       // render scene
+      renderer.renderShadowMap(entities, nmEntities, lights, display.getWidth(), display.getHeight());
       final Consumer<Vector4f> renderAction = p -> renderer.render(entities, nmEntities, terrains, lights, skybox, camera, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
       renderAction.accept(HIGH_PLANE);
@@ -339,7 +344,7 @@ public class Main {
       // I don't know if the stuff in here is necessary
       display.update();
     }
-    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer);
+    return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
   }
 
   private static Vector3f position(float x, float z, List<Terrain> terrains) {
