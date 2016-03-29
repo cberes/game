@@ -4,7 +4,6 @@ import static java.util.stream.IntStream.range;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,6 +69,7 @@ import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.skybox.SkyboxShader;
+import net.seabears.game.terrains.FakePerlinNoise;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.terrains.TerrainRenderer;
 import net.seabears.game.terrains.TerrainShader;
@@ -134,7 +134,7 @@ public class Main {
      * player
      */
     final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
-    final Player player = new Player(new EntityTexture(playerModel), new Vector3f(0, 0, -40), new Vector3f(0.0f, 180.0f, 0.0f), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
+    final Player player = new Player(new EntityTexture(playerModel), new Vector3f(), new Vector3f(), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
 
     /*
      * lights, camera, ...
@@ -212,10 +212,10 @@ public class Main {
             new TerrainTexture(loader.loadTexture("grass-flowers")),
             new TerrainTexture(loader.loadTexture("tile-path")));
     final TerrainTexture terrainBlend = new TerrainTexture(loader.loadTexture("blend-map"));
-    final BufferedImage heightMap = loader.loadImage("heightmap");
     final List<Terrain> terrains = new ArrayList<>();
-    terrains.add(new Terrain(0, -1, loader, terrainPack, terrainBlend, heightMap));
-    terrains.add(new Terrain(-1, -1, loader, terrainPack, terrainBlend, heightMap));
+    final long[] seeds = FakePerlinNoise.makeSeeds();
+    terrains.add(new Terrain(0, 0, loader, terrainPack, terrainBlend, new FakePerlinNoise(0, 0, 70.0, 3, 0.3, new Random(), seeds)));
+    terrains.add(new Terrain(1, 0, loader, terrainPack, terrainBlend, new FakePerlinNoise(1, 0, 70.0, 3, 0.3, new Random(), seeds)));
 
     /*
      * entities
@@ -224,9 +224,9 @@ public class Main {
     entities.add(player);
     final Random rand = new Random();
     final int numTrees = 1000;
-    entities.add(new Entity(new EntityTexture(lamp), new Vector3f(185.0f, -4.7f, -293.0f), new Vector3f(), 1.0f, new EntityLight(lights.get(1), new Vector3f(0.0f, 10.0f, 0.0f))));
-    entities.add(new Entity(new EntityTexture(lamp), new Vector3f(370.0f,  4.2f, -300.0f), new Vector3f(), 1.0f, new EntityLight(lights.get(2), new Vector3f(0.0f, 10.0f, 0.0f))));
-    entities.add(new Entity(new EntityTexture(lamp), new Vector3f(293.0f, -6.8f, -305.0f), new Vector3f(), 1.0f, new EntityLight(lights.get(3), new Vector3f(0.0f, 10.0f, 0.0f))));
+    entities.add(new Entity(new EntityTexture(lamp), position(800, 100, terrains), new Vector3f(), 1.0f, new EntityLight(lights.get(1), new Vector3f(0.0f, 10.0f, 0.0f))));
+    entities.add(new Entity(new EntityTexture(lamp), position(750, 50, terrains), new Vector3f(), 1.0f, new EntityLight(lights.get(2), new Vector3f(0.0f, 10.0f, 0.0f))));
+    entities.add(new Entity(new EntityTexture(lamp), position(850, 50, terrains), new Vector3f(), 1.0f, new EntityLight(lights.get(3), new Vector3f(0.0f, 10.0f, 0.0f))));
     for (int i = 0; i < numTrees; ++i) {
       entities.add(new Entity(new EntityTexture(tree), position(rand, terrains), new Vector3f(), 0.8f));
       entities.add(new Entity(new EntityTexture(lowPolyTree, rand.nextInt(4)), position(rand, terrains), new Vector3f(), 0.4f));
@@ -242,7 +242,7 @@ public class Main {
      * normal-mapped entities
      */
     final List<Entity> nmEntities = new ArrayList<>();
-    nmEntities.add(new Entity(new EntityTexture(barrel), new Vector3f(0, 10, -75), new Vector3f(), 1.0f));
+    nmEntities.add(new Entity(new EntityTexture(barrel), position(800, 25, terrains), new Vector3f(), 1.0f));
 
     /*
      * particles
@@ -255,7 +255,7 @@ public class Main {
      * water
      */
     final List<WaterTile> waterTiles = new ArrayList<>();
-    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 115, -60, -2, 25, 30));
+    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 800, 0, -2, 30, 30));
 
     /*
      * text
@@ -285,6 +285,9 @@ public class Main {
     // pickers
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
     final GuiPicker guiPicker = new GuiPicker(MouseButton.LEFT, mousePicker, guiBuilder.getGuis());
+
+    // start the player on some terrain
+    player.place(position(800, 0, terrains));
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
@@ -338,10 +341,14 @@ public class Main {
     return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer);
   }
 
-  private static Vector3f position(Random rand, List<Terrain> terrains) {
-    final float x = rand.nextFloat() * 1600 - 800;
-    final float z = rand.nextFloat() * -800;
+  private static Vector3f position(float x, float z, List<Terrain> terrains) {
     return new Vector3f(x, Terrain.getHeight(terrains, x, z), z);
+  }
+
+  private static Vector3f position(Random rand, List<Terrain> terrains) {
+    final float x = rand.nextFloat() * 1600;
+    final float z = rand.nextFloat() * 800;
+    return position(x, z, terrains);
   }
 
   private void init(final DisplayManager display, final DirectionKeys dir, final MovementKeys mov, final Queue<Scroll> scrolls, final CameraPanTilt panTilt) {
