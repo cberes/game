@@ -90,7 +90,8 @@ public class MasterRenderer {
     terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadViewMatrix(camera);
-    terrainRenderer.render(terrains);
+    terrainRenderer.getShader().loadShadowBox(shadowRenderer.getShadowBox());
+    terrainRenderer.render(terrains, shadowRenderer.getToShadowMapSpaceMatrix(), shadowRenderer.getShadowMap());
     terrainRenderer.getShader().stop();
 
     // skybox

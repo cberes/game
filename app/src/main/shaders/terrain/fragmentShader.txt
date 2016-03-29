@@ -10,6 +10,7 @@ uniform sampler2D rTexture;
 uniform sampler2D gTexture;
 uniform sampler2D bTexture;
 uniform sampler2D blendMap;
+uniform sampler2D shadowMap;
 
 // input is output from the vertex shader
 in vec3 toCameraVector;
@@ -17,10 +18,16 @@ in vec3 surfaceNormal;
 in vec3 toLightVector[4];
 in vec2 pass_textureCoords;
 in float visibility;
+in vec4 shadowCoords;
 
 out vec4 out_Color;
 
 void main(void) {
+	float objectNearestLight = texture(shadowMap, shadowCoords.xy).r;
+	float lightFactor = 1.0;
+	if (shadowCoords.x > objectNearestLight) {
+		lightFactor = 1.0 - (shadowCoords.w * 0.4);
+	}
 	vec4 blendMapColor = texture(blendMap, pass_textureCoords);
 	float backTextureAmount = 1 - blendMapColor.r - blendMapColor.g - blendMapColor.b;
 	vec2 tiledCoords = pass_textureCoords * 40.0; // tile terrain
@@ -58,5 +65,5 @@ void main(void) {
 	}
 
 	// limit diffuse color to minimum of 0.2 for ambient lighting
-	out_Color = mix(vec4(skyColor, 1.0), vec4(max(totalDiffuse, 0.2), 1.0) * totalColor + vec4(totalSpecular, 1.0), visibility);
+	out_Color = mix(vec4(skyColor, 1.0), vec4(max(totalDiffuse * lightFactor, 0.2), 1.0) * totalColor + vec4(totalSpecular, 1.0), visibility);
 }

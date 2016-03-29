@@ -31,7 +31,10 @@ public class TerrainRenderer implements Renderer {
     return shader;
   }
 
-  public void render(List<Terrain> terrains) {
+  public void render(List<Terrain> terrains, Matrix4f toShadowMapSpace, int shadowMap) {
+    shader.loadShadowMapSpaceMatrix(toShadowMapSpace);
+    GL13.glActiveTexture(getUnitId(TerrainShader.TEXTURE_SHADOW));
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowMap);
     for (Terrain terrain : terrains) {
       final RawModel model = terrain.getModel();
       GL30.glBindVertexArray(model.getVaoId());
@@ -75,6 +78,8 @@ public class TerrainRenderer implements Renderer {
         return GL13.GL_TEXTURE3;
       case 4:
         return GL13.GL_TEXTURE4;
+      case 5:
+        return GL13.GL_TEXTURE5;
       default:
         throw new UnsupportedOperationException("add texture unit mapping");
     }
