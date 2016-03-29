@@ -218,6 +218,13 @@ public class Main {
     terrains.add(new Terrain(1, 0, loader, terrainPack, terrainBlend, new FakePerlinNoise(1, 0, 70.0, 3, 0.3, new Random(), seeds)));
 
     /*
+     * water
+     */
+    final List<WaterTile> waterTiles = new ArrayList<>();
+    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 400, 400, -5, 400, 400));
+    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 1200, 400, -5, 400, 400));
+
+    /*
      * entities
      */
     final List<Entity> entities = new ArrayList<>();
@@ -250,12 +257,6 @@ public class Main {
     final ParticleMaster particles = new ParticleMaster(fps);
         final SpiralParticleSystem system = new SpiralParticleSystem(
                 new ParticleTexture(loader.loadTexture("flare-particle"), 4), player, 1.0f, GRAVITY, 2.0f);
-
-    /*
-     * water
-     */
-    final List<WaterTile> waterTiles = new ArrayList<>();
-    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 800, 0, -2, 30, 30));
 
     /*
      * text
