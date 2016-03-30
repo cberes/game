@@ -162,6 +162,10 @@ public class DisplayManager implements AutoCloseable {
     glfwPollEvents();
   }
 
+  public void setTitle(String title) {
+    glfwSetWindowTitle(window, title);
+  }
+
   @Override
   public void close() {
     // Release input and window callbacks

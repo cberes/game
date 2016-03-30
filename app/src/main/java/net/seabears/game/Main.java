@@ -81,6 +81,7 @@ import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
 import net.seabears.game.util.DayNightCycle;
 import net.seabears.game.util.FpsCalc;
+import net.seabears.game.util.FpsCounter;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
 import net.seabears.game.util.Volume;
@@ -131,6 +132,7 @@ public class Main {
 
   private List<Renderer> loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
     final FpsCalc fps = new FpsCalc();
+    final FpsCounter fpsCount = new FpsCounter();
     final DayNightCycle cycle = new DayNightCycle(DAY_LENGTH_MS, TimeUnit.MILLISECONDS, () -> System.currentTimeMillis());
     final Skybox skybox = new Skybox(cycle);
 
@@ -315,6 +317,9 @@ public class Main {
     while (display.isRunning()) {
       // update timing
       fps.update();
+      if (fpsCount.update(fps.get())) {
+        display.setTitle("FPS: " + fpsCount.get());
+      }
 
       // move player
       player.move(mov, (x, z) -> Terrain.getHeight(terrains, x, z));
