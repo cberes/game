@@ -8,7 +8,7 @@ import org.joml.Vector3f;
 
 import net.seabears.game.entities.Player;
 
-public class SpiralParticleSystem implements ParticleSystem {
+public class PlayerParticleSystem implements ParticleSystem {
   private final Random r = new Random();
   private final ParticleTexture texture;
   private final Player player;
@@ -16,7 +16,7 @@ public class SpiralParticleSystem implements ParticleSystem {
   private final float gravity;
   private final float ttl;
 
-  public SpiralParticleSystem(ParticleTexture texture, Player player, float scale, float gravity, float ttl) {
+  public PlayerParticleSystem(ParticleTexture texture, Player player, float scale, float gravity, float ttl) {
     this.texture = texture;
     this.player = player;
     this.scale = scale;
@@ -28,7 +28,7 @@ public class SpiralParticleSystem implements ParticleSystem {
   public List<Particle> generate(float t) {
         return Collections.singletonList(new Particle(texture, player.getPosition(),
                 new Vector3f((float) Math.sin(Math.toRadians(player.getRotation().y + r.nextInt(10))),
-                        30.0f +  + r.nextInt(3),
+                        30.0f + r.nextInt(3),
                         (float) Math.cos(Math.toRadians(player.getRotation().y + r.nextInt(10)))),
                 gravity, ttl, 0.0f, scale));
   }

@@ -60,7 +60,7 @@ import net.seabears.game.particles.ParticleMaster;
 import net.seabears.game.particles.ParticleRenderer;
 import net.seabears.game.particles.ParticleShader;
 import net.seabears.game.particles.ParticleTexture;
-import net.seabears.game.particles.SpiralParticleSystem;
+import net.seabears.game.particles.SimpleParticleSystem;
 import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
@@ -224,12 +224,26 @@ public class Main {
     terrains.add(new Terrain(0, 0, loader, terrainPack, terrainBlend, new FakePerlinNoise(0, 0, 70.0, 3, 0.3, new Random(), seeds)));
     terrains.add(new Terrain(1, 0, loader, terrainPack, terrainBlend, new FakePerlinNoise(1, 0, 70.0, 3, 0.3, new Random(), seeds)));
 
+    // start the player on some terrain
+    player.place(position(800, 0, terrains));
+
     /*
      * water
      */
     final List<WaterTile> waterTiles = new ArrayList<>();
-    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 400, 400, -5, 400, 400));
-    waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), 1200, 400, -5, 400, 400));
+    {
+      int dx = 100;
+      int dz = 100;
+      int x = 0;
+      while (x < 1600) {
+        int z = 0;
+        while (z < 800) {
+          waterTiles.add(new WaterTile(new Water(fps, 0.03f, 1.0f), x + (dx / 2), z + (dz / 2), -5, dx / 2, dz / 2));
+          z += dz;
+        }
+        x += dx;
+      }
+    }
 
     /*
      * entities
@@ -262,8 +276,9 @@ public class Main {
      * particles
      */
     final ParticleMaster particles = new ParticleMaster(fps);
-        final SpiralParticleSystem system = new SpiralParticleSystem(
-                new ParticleTexture(loader.loadTexture("flare-particle"), 4), player, 1.0f, GRAVITY, 2.0f);
+    final SimpleParticleSystem system = new SimpleParticleSystem(
+        new ParticleTexture(loader.loadTexture("flare-particle"), 4),
+        new Vector3f(player.getPosition()), 1.0f, GRAVITY, 2.0f, 5);
 
     /*
      * text
@@ -271,7 +286,7 @@ public class Main {
     final FontType liberation = new FontType(loader.loadTexture("fonts/liberation"), new TextMeshCreator(new MetaFile(new File("src/main/res/fonts/liberation.fnt"), display.getWidth(), display.getHeight(), 8)));
     final List<GuiText> text = new ArrayList<>();
     final TextMaster textMaster = new TextMaster(loader, new FontRenderer(new FontShader()));
-    text.add(new GuiText("Winnie Land!", new Vector2f(0.5f), 0.5f, false, liberation, 3.0f,
+    text.add(new GuiText("Winnie Land!", new Vector2f(0.0f, 0.0f), 1.0f, true, liberation, 3.0f,
         new TextAttr(new Vector3f(0.0f, 1.0f, 1.0f), 0.5f, 0.1f),
         new TextAttr(new Vector3f(1.0f, 0.0f, 1.0f), 0.4f, 0.5f, new Vector2f(0.006f))));
     text.forEach(textMaster::load);
@@ -293,9 +308,6 @@ public class Main {
     // pickers
     final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
     final GuiPicker guiPicker = new GuiPicker(MouseButton.LEFT, mousePicker, guiBuilder.getGuis());
-
-    // start the player on some terrain
-    player.place(position(800, 0, terrains));
 
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
