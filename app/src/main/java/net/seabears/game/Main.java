@@ -66,7 +66,7 @@ import net.seabears.game.render.Loader;
 import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.shadows.ShadowBox;
-import net.seabears.game.shadows.ShadowMapMasterRenderer;
+import net.seabears.game.shadows.ShadowMapRenderer;
 import net.seabears.game.shadows.ShadowShader;
 import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.skybox.Skybox;
@@ -103,6 +103,7 @@ public class Main {
   private static final float MAX_TERRAIN_RANGE = 600.0f;
   private static final Vector4f HIGH_PLANE = new Vector4f(0.0f, 1.0f, 0.0f, -1000.0f);
   private static final int MAX_PARTICLES = 10000;
+  private static final int SHADOW_MAP_SIZE = 4096;
 
   private static final int WATER_REFLECTION_WIDTH = 320;
   private static final int WATER_REFLECTION_HEIGHT = 180;
@@ -165,7 +166,9 @@ public class Main {
         new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
-    final ShadowMapMasterRenderer shadowRenderer = new ShadowMapMasterRenderer(camera, new ShadowShader(), new ShadowBox(camera, FOV, NEAR_PLANE, display.getWidth(), display.getHeight()), display.getWidth(), display.getHeight());
+    final ShadowMapRenderer shadowRenderer = new ShadowMapRenderer(new ShadowShader(),
+        new ShadowBox(camera, FOV, NEAR_PLANE, 150, 10, display.getWidth(), display.getHeight()),
+        new FrameBuffer(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, display.getWidth(), display.getHeight()), 2);
     final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
 

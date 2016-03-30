@@ -129,8 +129,8 @@ public class TerrainShader extends ShaderProgram {
   }
 
   public void loadShadowBox(ShadowBox box) {
-    super.loadFloat(locationShadowDistance, ShadowBox.SHADOW_DISTANCE);
-    super.loadFloat(locationTransitionDistance, ShadowBox.TRANSITION_DISTANCE);
+    super.loadFloat(locationShadowDistance, box.getShadowDistance());
+    super.loadFloat(locationTransitionDistance, box.getTransitionDistance());
   }
 
   public void loadShadowMapSize(float size) {

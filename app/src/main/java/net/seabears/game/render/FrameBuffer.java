@@ -53,6 +53,14 @@ public class FrameBuffer implements AutoCloseable {
     unbind(displayWidth, displayHeight);
   }
 
+  public int getWidth() {
+    return width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
   public int getId() {
     return id;
   }

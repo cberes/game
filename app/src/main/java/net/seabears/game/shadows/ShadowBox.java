@@ -18,15 +18,14 @@ import net.seabears.game.entities.Camera;
  *
  */
 public class ShadowBox {
-  private static final float OFFSET = 10;
   private static final Vector4f UP = new Vector4f(0, 1, 0, 0);
   private static final Vector4f FORWARD = new Vector4f(0, 0, -1, 0);
-  public static final float SHADOW_DISTANCE = 100;
-  public static final float TRANSITION_DISTANCE = 10;
+  private static final float OFFSET = 10;
 
   private final Matrix4f lightViewMatrix;
-  private final Camera cam;
+  private final Camera camera;
   private final float farHeight, farWidth, nearHeight, nearWidth, nearPlane;
+  private final float shadowDistance, transitionDistance;
   private float minX, maxX;
   private float minY, maxY;
   private float minZ, maxZ;
@@ -40,11 +39,13 @@ public class ShadowBox {
    *        in relation to the world's axis to being in terms of the light's local axis).
    * @param camera - the in-game camera.
    */
-  public ShadowBox(Camera camera, float fov, float nearPlane, int displayWidth, int displayHeight) {
+  public ShadowBox(Camera camera, float fov, float nearPlane, float shadowDistance, float transitionDistance, int displayWidth, int displayHeight) {
     this.lightViewMatrix = new Matrix4f();
-    this.cam = camera;
+    this.camera = camera;
     this.nearPlane = nearPlane;
-    farWidth = (float) (SHADOW_DISTANCE * Math.tan(Math.toRadians(fov)));
+    this.shadowDistance = shadowDistance;
+    this.transitionDistance = transitionDistance;
+    farWidth = (float) (shadowDistance * Math.tan(Math.toRadians(fov)));
     nearWidth = (float) (nearPlane * Math.tan(Math.toRadians(fov)));
     final float aspectRatio = displayWidth / (float) displayHeight;
     farHeight = farWidth / aspectRatio;
@@ -61,10 +62,10 @@ public class ShadowBox {
     Vector4f r = rotation.transform(FORWARD, new Vector4f());
     Vector3f forwardVector = new Vector3f(r.x, r.y, r.z);
 
-    Vector3f toFar = new Vector3f(forwardVector).mul(SHADOW_DISTANCE);
+    Vector3f toFar = new Vector3f(forwardVector).mul(shadowDistance);
     Vector3f toNear = new Vector3f(forwardVector).mul(nearPlane);
-    Vector3f centerNear = toNear.add(cam.getPosition(), new Vector3f());
-    Vector3f centerFar = toFar.add(cam.getPosition(), new Vector3f());
+    Vector3f centerNear = toNear.add(camera.getPosition(), new Vector3f());
+    Vector3f centerFar = toFar.add(camera.getPosition(), new Vector3f());
 
     Vector4f[] points = calculateFrustumVertices(rotation, forwardVector, centerNear, centerFar);
 
@@ -141,6 +142,14 @@ public class ShadowBox {
     return maxZ - minZ;
   }
 
+  public float getShadowDistance() {
+    return shadowDistance;
+  }
+
+  public float getTransitionDistance() {
+    return transitionDistance;
+  }
+
   /**
    * Calculates the position of the vertex at each corner of the view frustum in light space (8
    * vertices in total, so this returns 8 positions).
@@ -205,8 +214,8 @@ public class ShadowBox {
    */
   private Matrix4f calculateCameraRotationMatrix() {
     Matrix4f rotation = new Matrix4f();
-    rotation.rotate((float) Math.toRadians(-cam.getYaw()), new Vector3f(0, 1, 0));
-    rotation.rotate((float) Math.toRadians(-cam.getPitch()), new Vector3f(1, 0, 0));
+    rotation.rotate((float) Math.toRadians(-camera.getYaw()), new Vector3f(0, 1, 0));
+    rotation.rotate((float) Math.toRadians(-camera.getPitch()), new Vector3f(1, 0, 0));
     return rotation;
   }
 }

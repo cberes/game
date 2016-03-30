@@ -4,16 +4,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
+import net.seabears.game.models.RawModel;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.render.FrameBuffer;
+import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.Renderer;
+import net.seabears.game.shaders.ShaderProgram;
+import net.seabears.game.util.TransformationMatrix;
 
 /**
  * This class is in charge of using all of the classes in the shadows package to carry out the
@@ -23,13 +29,26 @@ import net.seabears.game.render.Renderer;
  * @author Karl
  *
  */
-public class ShadowMapMasterRenderer implements Renderer {
-  public static final int SHADOW_MAP_SIZE = 2048;
+public class ShadowMapRenderer implements Renderer {
+  /**
+   * Create the offset for part of the conversion to shadow map space. This conversion is necessary
+   * to convert from one coordinate system to the coordinate system that we can use to sample to
+   * shadow map.
+   * 
+   * @return The offset as a matrix (so that it's easy to apply to other matrices).
+   */
+  private static Matrix4f createOffset() {
+    Matrix4f offset = new Matrix4f();
+    offset.translate(new Vector3f(0.5f));
+    offset.scale(new Vector3f(0.5f));
+    return offset;
+  }
 
   private final FrameBuffer shadowFbo;
   private final ShadowShader shader;
   private final ShadowBox shadowBox;
-  private final ShadowMapEntityRenderer entityRenderer;
+  private final int size;
+  private final int pcfCount;
   private final Matrix4f projectionMatrix = new Matrix4f();
   private final Matrix4f lightViewMatrix;
   private final Matrix4f projectionViewMatrix = new Matrix4f();
@@ -44,14 +63,15 @@ public class ShadowMapMasterRenderer implements Renderer {
    * 
    * @param camera - the camera being used in the scene.
    */
-  public ShadowMapMasterRenderer(Camera camera, ShadowShader shader, ShadowBox box,
-      int displayWidth, int displayHeight) {
+  public ShadowMapRenderer(ShadowShader shader, ShadowBox box, FrameBuffer shadowFbo, int pcfCount) {
+    assert shadowFbo.getWidth() == shadowFbo.getHeight();
+    this.shadowBox = box;
+    this.shadowFbo = shadowFbo;
+    this.pcfCount = pcfCount;
+    this.size = shadowFbo.getWidth();
+    this.lightViewMatrix = box.getLightViewMatrix();
     this.shader = shader;
     this.shader.init();
-    this.shadowBox = box;
-    this.shadowFbo = new FrameBuffer(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, displayWidth, displayHeight);
-    this.entityRenderer = new ShadowMapEntityRenderer(shader, projectionViewMatrix);
-    this.lightViewMatrix = box.getLightViewMatrix();
   }
 
   /**
@@ -65,53 +85,66 @@ public class ShadowMapMasterRenderer implements Renderer {
    *        {@link TexturedModel} that all of the entities in that list use.
    * @param sun - the light acting as the sun in the scene.
    */
-  public void render(Map<TexturedModel, List<Entity>> entities, Light sun, int displayWidth,
-      int displayHeight) {
+  public void render(Map<TexturedModel, List<Entity>> entities, Light sun, int displayWidth, int displayHeight) {
     shadowBox.update();
     Vector3f sunPosition = sun.getPosition();
     Vector3f lightDirection = new Vector3f(-sunPosition.x, -sunPosition.y, -sunPosition.z);
     prepare(lightDirection, shadowBox);
-    entityRenderer.render(entities);
+    render(entities);
     finish(displayWidth, displayHeight);
   }
 
   /**
-   * This biased projection-view matrix is used to convert fragments into "shadow map space" when
-   * rendering the main render pass. It converts a world space position into a 2D coordinate on the
-   * shadow map. This is needed for the second part of shadow mapping.
+   * Renders entieis to the shadow map. Each model is first bound and then all of the entities using
+   * that model are rendered to the shadow map.
    * 
-   * @return The to-shadow-map-space matrix.
+   * @param entities - the entities to be rendered to the shadow map.
    */
-  public Matrix4f getToShadowMapSpaceMatrix() {
-    return offset.mul(projectionViewMatrix, new Matrix4f());
+  protected void render(Map<TexturedModel, List<Entity>> entities) {
+    for (Map.Entry<TexturedModel, List<Entity>> entry : entities.entrySet()) {
+      final TexturedModel model = entry.getKey();
+      final RawModel rawModel = model.getRawModel();
+      bindModel(rawModel);
+      GL13.glActiveTexture(GL13.GL_TEXTURE0);
+      GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.getTexture().getTextureId());
+      if (model.getTexture().isTransparent()) {
+        MasterRenderer.disableCulling();
+      }
+      for (Entity entity : entry.getValue()) {
+        prepareInstance(entity);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+      }
+      if (model.getTexture().isTransparent()) {
+        MasterRenderer.enableCulling();
+      }
+    }
+    GL20.glDisableVertexAttribArray(ShaderProgram.ATTR_POSITION);
+    GL20.glDisableVertexAttribArray(ShaderProgram.ATTR_TEXTURE);
+    GL30.glBindVertexArray(0);
   }
 
   /**
-   * Clean up the shader and FBO on closing.
+   * Binds a raw model before rendering. Only the attribute 0 is enabled here because that is where
+   * the positions are stored in the VAO, and only the positions are required in the vertex shader.
+   * 
+   * @param rawModel - the model to be bound.
    */
-  @Override
-  public void close() {
-    shader.close();
-    shadowFbo.close();
+  private void bindModel(RawModel rawModel) {
+    GL30.glBindVertexArray(rawModel.getVaoId());
+    GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_POSITION);
+    GL20.glEnableVertexAttribArray(ShaderProgram.ATTR_TEXTURE);
   }
 
   /**
-   * @return The ID of the shadow map texture. The ID will always stay the same, even when the
-   *         contents of the shadow map texture change each frame.
+   * Prepares an entity to be rendered. The model matrix is created in the usual way and then
+   * multiplied with the projection and view matrix (often in the past we've done this in the vertex
+   * shader) to create the mvp-matrix. This is then loaded to the vertex shader as a uniform.
+   * 
+   * @param entity - the entity to be prepared for rendering.
    */
-  public int getShadowMap() {
-    return shadowFbo.getTexture();
-  }
-
-  /**
-   * @return The light's "view" matrix.
-   */
-  protected Matrix4f getLightSpaceTransform() {
-    return lightViewMatrix;
-  }
-
-  public ShadowBox getShadowBox() {
-    return shadowBox;
+  private void prepareInstance(Entity entity) {
+    Matrix4f modelMatrix = new TransformationMatrix(entity.getPosition(), entity.getRotation(), entity.getScale()).toMatrix();
+    shader.loadMvpMatrix(projectionViewMatrix.mul(modelMatrix, new Matrix4f()));
   }
 
   /**
@@ -187,16 +220,49 @@ public class ShadowMapMasterRenderer implements Renderer {
   }
 
   /**
-   * Create the offset for part of the conversion to shadow map space. This conversion is necessary
-   * to convert from one coordinate system to the coordinate system that we can use to sample to
-   * shadow map.
+   * This biased projection-view matrix is used to convert fragments into "shadow map space" when
+   * rendering the main render pass. It converts a world space position into a 2D coordinate on the
+   * shadow map. This is needed for the second part of shadow mapping.
    * 
-   * @return The offset as a matrix (so that it's easy to apply to other matrices).
+   * @return The to-shadow-map-space matrix.
    */
-  private static Matrix4f createOffset() {
-    Matrix4f offset = new Matrix4f();
-    offset.translate(new Vector3f(0.5f, 0.5f, 0.5f));
-    offset.scale(new Vector3f(0.5f, 0.5f, 0.5f));
-    return offset;
+  public Matrix4f getToShadowMapSpaceMatrix() {
+    return offset.mul(projectionViewMatrix, new Matrix4f());
+  }
+
+  /**
+   * @return The ID of the shadow map texture. The ID will always stay the same, even when the
+   *         contents of the shadow map texture change each frame.
+   */
+  public int getShadowMap() {
+    return shadowFbo.getTexture();
+  }
+
+  /**
+   * @return The light's "view" matrix.
+   */
+  protected Matrix4f getLightSpaceTransform() {
+    return lightViewMatrix;
+  }
+
+  public ShadowBox getShadowBox() {
+    return shadowBox;
+  }
+
+  public int getSize() {
+    return size;
+  }
+
+  public int getPcfCount() {
+    return pcfCount;
+  }
+
+  /**
+   * Clean up the shader and FBO on closing.
+   */
+  @Override
+  public void close() {
+    shader.close();
+    shadowFbo.close();
   }
 }

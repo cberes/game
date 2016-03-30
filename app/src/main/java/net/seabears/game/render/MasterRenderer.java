@@ -11,7 +11,7 @@ import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.Light;
 import net.seabears.game.entities.normalmap.NormalMappingRenderer;
-import net.seabears.game.shadows.ShadowMapMasterRenderer;
+import net.seabears.game.shadows.ShadowMapRenderer;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
@@ -33,9 +33,9 @@ public class MasterRenderer {
   private final NormalMappingRenderer nmRenderer;
   private final TerrainRenderer terrainRenderer;
   private final SkyboxRenderer skyboxRenderer;
-  private final ShadowMapMasterRenderer shadowRenderer;
+  private final ShadowMapRenderer shadowRenderer;
 
-  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer, ShadowMapMasterRenderer shadowRenderer) {
+  public MasterRenderer(Vector3f skyColor, EntityRenderer entityRenderer, NormalMappingRenderer nmRenderer, TerrainRenderer terrainRenderer, SkyboxRenderer skyboxRenderer, ShadowMapRenderer shadowRenderer) {
     this.skyColor = skyColor;
     this.entityRenderer = entityRenderer;
     this.nmRenderer = nmRenderer;
@@ -90,9 +90,9 @@ public class MasterRenderer {
     terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadViewMatrix(camera);
-    terrainRenderer.getShader().loadPercentageCloserFiltering(2); // TODO get this from somewhere
+    terrainRenderer.getShader().loadPercentageCloserFiltering(shadowRenderer.getPcfCount());
     terrainRenderer.getShader().loadShadowBox(shadowRenderer.getShadowBox());
-    terrainRenderer.getShader().loadShadowMapSize(ShadowMapMasterRenderer.SHADOW_MAP_SIZE);
+    terrainRenderer.getShader().loadShadowMapSize(shadowRenderer.getSize());
     terrainRenderer.render(terrains, shadowRenderer.getToShadowMapSpaceMatrix(), shadowRenderer.getShadowMap());
     terrainRenderer.getShader().stop();
 
