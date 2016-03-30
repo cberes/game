@@ -285,7 +285,6 @@ public class Main {
     // create final list of GUIs for the window
     List<GuiTexture> guis = new ArrayList<>();
     guis.add(new GuiTexture(loader.loadTexture("winnie"), new Vector2f(0.7f, 0.7f), guiScale));
-    guis.add(new GuiTexture(shadowRenderer.getShadowMap(), new Vector2f(0.5f, -0.5f), new Vector2f(0.5f)));
     guis.addAll(guiBuilder.getGuis().values());
 
     // pickers

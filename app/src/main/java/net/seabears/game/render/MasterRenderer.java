@@ -90,7 +90,9 @@ public class MasterRenderer {
     terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadViewMatrix(camera);
+    terrainRenderer.getShader().loadPercentageCloserFiltering(2); // TODO get this from somewhere
     terrainRenderer.getShader().loadShadowBox(shadowRenderer.getShadowBox());
+    terrainRenderer.getShader().loadShadowMapSize(ShadowMapMasterRenderer.SHADOW_MAP_SIZE);
     terrainRenderer.render(terrains, shadowRenderer.getToShadowMapSpaceMatrix(), shadowRenderer.getShadowMap());
     terrainRenderer.getShader().stop();
 

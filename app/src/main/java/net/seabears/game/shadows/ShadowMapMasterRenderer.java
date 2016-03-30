@@ -24,7 +24,7 @@ import net.seabears.game.render.Renderer;
  *
  */
 public class ShadowMapMasterRenderer implements Renderer {
-  private static final int SHADOW_MAP_SIZE = 2048;
+  public static final int SHADOW_MAP_SIZE = 2048;
 
   private final FrameBuffer shadowFbo;
   private final ShadowShader shader;

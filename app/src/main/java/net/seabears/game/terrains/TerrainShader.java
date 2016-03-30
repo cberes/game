@@ -34,7 +34,9 @@ public class TerrainShader extends ShaderProgram {
   private int locationProjectionMatrix;
   private int locationReflectivity;
   private int locationShineDamper;
+  private int locationPcfCount;
   private int locationSkyColor;
+  private int locationShadowMapSize;
   private int locationShadowDistance;
   private int locationTransitionDistance;
   private int locationToShadowMapSpace;
@@ -69,7 +71,9 @@ public class TerrainShader extends ShaderProgram {
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
+    locationPcfCount = super.getUniformLocation("pcfCount");
     locationSkyColor = super.getUniformLocation("skyColor");
+    locationShadowMapSize = super.getUniformLocation("shadowMapSize");
     locationToShadowMapSpace = super.getUniformLocation("toShadowMapSpace");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
@@ -101,6 +105,10 @@ public class TerrainShader extends ShaderProgram {
     super.loadMatrix(locationProjectionMatrix, matrix);
   }
 
+  public void loadPercentageCloserFiltering(int count) {
+    super.loadInt(locationPcfCount, count);
+  }
+
   public void loadSky(Vector3f color) {
     super.loadFloat(locationSkyColor, color);
   }
@@ -123,6 +131,10 @@ public class TerrainShader extends ShaderProgram {
   public void loadShadowBox(ShadowBox box) {
     super.loadFloat(locationShadowDistance, ShadowBox.SHADOW_DISTANCE);
     super.loadFloat(locationTransitionDistance, ShadowBox.TRANSITION_DISTANCE);
+  }
+
+  public void loadShadowMapSize(float size) {
+    super.loadFloat(locationShadowMapSize, size);
   }
 
   public void loadShadowMapSpaceMatrix(Matrix4f matrix) {
