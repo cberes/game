@@ -67,7 +67,7 @@ import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.shadows.ShadowBox;
 import net.seabears.game.shadows.ShadowMapRenderer;
-import net.seabears.game.shadows.ShadowShader;
+import net.seabears.game.shadows.ShadowMapShader;
 import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
@@ -166,7 +166,7 @@ public class Main {
         new SkyboxShader(fps, 1.0f), projMatrix.toMatrix(), SKYBOX_SIZE,
         SkyboxRenderer.loadCube(loader, "skybox-stormy/"),
         SkyboxRenderer.loadCube(loader, "skybox-night/"));
-    final ShadowMapRenderer shadowRenderer = new ShadowMapRenderer(new ShadowShader(),
+    final ShadowMapRenderer shadowRenderer = new ShadowMapRenderer(new ShadowMapShader(),
         new ShadowBox(camera, FOV, NEAR_PLANE, 150, 10, display.getWidth(), display.getHeight()),
         new FrameBuffer(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, display.getWidth(), display.getHeight()), 2);
     final MasterRenderer renderer = new MasterRenderer(SKY_COLOR, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);

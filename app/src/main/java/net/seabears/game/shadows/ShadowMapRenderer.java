@@ -45,7 +45,7 @@ public class ShadowMapRenderer implements Renderer {
   }
 
   private final FrameBuffer shadowFbo;
-  private final ShadowShader shader;
+  private final ShadowMapShader shader;
   private final ShadowBox shadowBox;
   private final int size;
   private final int pcfCount;
@@ -63,7 +63,7 @@ public class ShadowMapRenderer implements Renderer {
    * 
    * @param camera - the camera being used in the scene.
    */
-  public ShadowMapRenderer(ShadowShader shader, ShadowBox box, FrameBuffer shadowFbo, int pcfCount) {
+  public ShadowMapRenderer(ShadowMapShader shader, ShadowBox box, FrameBuffer shadowFbo, int pcfCount) {
     assert shadowFbo.getWidth() == shadowFbo.getHeight();
     this.shadowBox = box;
     this.shadowFbo = shadowFbo;

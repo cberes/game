@@ -11,13 +11,12 @@ import org.joml.Vector4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
-import net.seabears.game.shaders.ShaderProgram;
-import net.seabears.game.shadows.ShadowBox;
+import net.seabears.game.shadows.ShadowShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
-public class TerrainShader extends ShaderProgram {
+public class TerrainShader extends ShadowShader {
   public static final int TEXTURE_UNIT_BACKGROUND = 0;
   public static final int TEXTURE_UNIT_R = 1;
   public static final int TEXTURE_UNIT_G = 2;
@@ -34,12 +33,7 @@ public class TerrainShader extends ShaderProgram {
   private int locationProjectionMatrix;
   private int locationReflectivity;
   private int locationShineDamper;
-  private int locationPcfCount;
   private int locationSkyColor;
-  private int locationShadowMapSize;
-  private int locationShadowDistance;
-  private int locationTransitionDistance;
-  private int locationToShadowMapSpace;
   private int locationTransformationMatrix;
   private int locationViewMatrix;
   private int locationBackgroundTexture;
@@ -47,10 +41,9 @@ public class TerrainShader extends ShaderProgram {
   private int locationgTexture;
   private int locationbTexture;
   private int locationBlendMap;
-  private int locationShadowMap;
 
   public TerrainShader(int lights) throws IOException {
-    super(SHADER_ROOT + "terrain/");
+    super(SHADER_ROOT + "terrain/", TEXTURE_SHADOW);
     this.lights = lights;
   }
 
@@ -63,6 +56,7 @@ public class TerrainShader extends ShaderProgram {
 
   @Override
   protected void getAllUniformLocations() {
+    super.getAllUniformLocations();
     locationClippingPlane = super.getUniformLocation("clippingPlane");
     locationFakeLighting = super.getUniformLocation("fakeLighting");
     locationLightAttenuation = super.getUniformLocations("attenuation", lights);
@@ -71,10 +65,7 @@ public class TerrainShader extends ShaderProgram {
     locationProjectionMatrix = super.getUniformLocation("projectionMatrix");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
-    locationPcfCount = super.getUniformLocation("pcfCount");
     locationSkyColor = super.getUniformLocation("skyColor");
-    locationShadowMapSize = super.getUniformLocation("shadowMapSize");
-    locationToShadowMapSpace = super.getUniformLocation("toShadowMapSpace");
     locationTransformationMatrix = super.getUniformLocation("transformationMatrix");
     locationViewMatrix = super.getUniformLocation("viewMatrix");
     locationBackgroundTexture = super.getUniformLocation("backgroundTexture");
@@ -82,9 +73,6 @@ public class TerrainShader extends ShaderProgram {
     locationgTexture = super.getUniformLocation("gTexture");
     locationbTexture = super.getUniformLocation("bTexture");
     locationBlendMap = super.getUniformLocation("blendMap");
-    locationShadowMap = super.getUniformLocation("shadowMap");
-    locationShadowDistance = super.getUniformLocation("shadowDistance");
-    locationTransitionDistance = super.getUniformLocation("transitionDistance");
   }
 
   public void loadClippingPlane(Vector4f plane) {
@@ -105,10 +93,6 @@ public class TerrainShader extends ShaderProgram {
     super.loadMatrix(locationProjectionMatrix, matrix);
   }
 
-  public void loadPercentageCloserFiltering(int count) {
-    super.loadInt(locationPcfCount, count);
-  }
-
   public void loadSky(Vector3f color) {
     super.loadFloat(locationSkyColor, color);
   }
@@ -119,26 +103,12 @@ public class TerrainShader extends ShaderProgram {
     super.loadInt(locationgTexture, TEXTURE_UNIT_G);
     super.loadInt(locationbTexture, TEXTURE_UNIT_B);
     super.loadInt(locationBlendMap, TEXTURE_UNIT_BLEND);
-    super.loadInt(locationShadowMap, TEXTURE_SHADOW);
   }
 
   public void loadTexture(ModelTexture texture) {
     super.loadFloat(locationFakeLighting, texture.isFakeLighting());
     super.loadFloat(locationReflectivity, texture.getReflectivity());
     super.loadFloat(locationShineDamper, texture.getShineDamper());
-  }
-
-  public void loadShadowBox(ShadowBox box) {
-    super.loadFloat(locationShadowDistance, box.getShadowDistance());
-    super.loadFloat(locationTransitionDistance, box.getTransitionDistance());
-  }
-
-  public void loadShadowMapSize(float size) {
-    super.loadFloat(locationShadowMapSize, size);
-  }
-
-  public void loadShadowMapSpaceMatrix(Matrix4f matrix) {
-    super.loadMatrix(locationToShadowMapSpace, matrix);
   }
 
   public void loadTransformationMatrix(Terrain terrain) {

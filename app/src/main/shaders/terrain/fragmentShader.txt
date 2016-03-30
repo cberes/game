@@ -4,14 +4,16 @@ uniform vec3 attenuation[4];
 uniform vec3 lightColor[4];
 uniform float reflectivity;
 uniform float shineDamper;
-uniform int pcfCount;
-uniform float shadowMapSize;
 uniform vec3 skyColor;
 uniform sampler2D backgroundTexture;
 uniform sampler2D rTexture;
 uniform sampler2D gTexture;
 uniform sampler2D bTexture;
 uniform sampler2D blendMap;
+
+// shadow uniforms 
+uniform int pcfCount;
+uniform float shadowMapSize;
 uniform sampler2D shadowMap;
 
 // input is output from the vertex shader
@@ -25,13 +27,15 @@ in vec4 shadowCoords;
 out vec4 out_Color;
 
 void main(void) {
+	// calculate amount in shadow
 	float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
 	float texelSize = 1.0 / shadowMapSize;
 	float total = 0.0;
 	for (int x = -pcfCount; x <= pcfCount; ++x) {
 		for (int y = -pcfCount; y <= pcfCount; ++y) {
 			float objectNearestLight = texture(shadowMap, shadowCoords.xy + vec2(x, y) * texelSize).r;
-			if (shadowCoords.z > objectNearestLight) {
+			// add small bias to prevent object being include in its own shadow
+			if (shadowCoords.z > objectNearestLight + 0.002) {
 				total += 1.0;
 			}
 		}

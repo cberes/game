@@ -31,8 +31,7 @@ public class TerrainRenderer implements Renderer {
     return shader;
   }
 
-  public void render(List<Terrain> terrains, Matrix4f toShadowMapSpace, int shadowMap) {
-    shader.loadShadowMapSpaceMatrix(toShadowMapSpace);
+  public void render(List<Terrain> terrains, int shadowMap) {
     GL13.glActiveTexture(getUnitId(TerrainShader.TEXTURE_SHADOW));
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowMap);
     for (Terrain terrain : terrains) {

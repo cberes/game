@@ -9,12 +9,14 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import net.seabears.game.shaders.ShaderProgram;
+import net.seabears.game.shadows.ShadowShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
 import net.seabears.game.util.ViewMatrix;
 
-public class StaticShader extends ShaderProgram {
+public class StaticShader extends ShadowShader {
+  public static final int TEXTURE_SHADOW = 1;
+
   private final int lights;
   private int locationClippingPlane;
   private int locationFakeLighting;
@@ -31,7 +33,7 @@ public class StaticShader extends ShaderProgram {
   private int locationViewMatrix;
 
   public StaticShader(int lights) throws IOException {
-    super(SHADER_ROOT);
+    super(SHADER_ROOT, TEXTURE_SHADOW);
     this.lights = lights;
   }
 
@@ -44,6 +46,7 @@ public class StaticShader extends ShaderProgram {
 
   @Override
   protected void getAllUniformLocations() {
+    super.getAllUniformLocations();
     locationClippingPlane = super.getUniformLocation("clippingPlane");
     locationFakeLighting = super.getUniformLocation("fakeLighting");
     locationLightAttenuation = super.getUniformLocations("attenuation", lights);

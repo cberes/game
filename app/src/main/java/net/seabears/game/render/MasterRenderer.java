@@ -67,7 +67,8 @@ public class MasterRenderer {
       entityRenderer.getShader().loadLights(lights);
       entityRenderer.getShader().loadSky(skyColor);
       entityRenderer.getShader().loadViewMatrix(camera);
-      entityRenderer.render(e.get());
+      entityRenderer.getShader().loadShadows(shadowRenderer);
+      entityRenderer.render(e.get(), shadowRenderer.getShadowMap());
       entityRenderer.getShader().stop();
     }
 
@@ -80,7 +81,8 @@ public class MasterRenderer {
       nmRenderer.getShader().loadLights(lights, camera);
       nmRenderer.getShader().loadSky(skyColor);
       nmRenderer.getShader().loadViewMatrix(camera);
-      nmRenderer.render(e.get());
+      nmRenderer.getShader().loadShadows(shadowRenderer);
+      nmRenderer.render(e.get(), shadowRenderer.getShadowMap());
       nmRenderer.getShader().stop();
     }
 
@@ -90,10 +92,8 @@ public class MasterRenderer {
     terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadSky(skyColor);
     terrainRenderer.getShader().loadViewMatrix(camera);
-    terrainRenderer.getShader().loadPercentageCloserFiltering(shadowRenderer.getPcfCount());
-    terrainRenderer.getShader().loadShadowBox(shadowRenderer.getShadowBox());
-    terrainRenderer.getShader().loadShadowMapSize(shadowRenderer.getSize());
-    terrainRenderer.render(terrains, shadowRenderer.getToShadowMapSpaceMatrix(), shadowRenderer.getShadowMap());
+    terrainRenderer.getShader().loadShadows(shadowRenderer);
+    terrainRenderer.render(terrains, shadowRenderer.getShadowMap());
     terrainRenderer.getShader().stop();
 
     // skybox

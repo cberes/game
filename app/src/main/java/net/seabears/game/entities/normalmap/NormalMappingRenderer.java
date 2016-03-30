@@ -33,7 +33,9 @@ public class NormalMappingRenderer implements Renderer {
     return shader;
   }
 
-  public void render(Map<TexturedModel, List<Entity>> entities) {
+  public void render(Map<TexturedModel, List<Entity>> entities, int shadowMap) {
+    GL13.glActiveTexture(GL13.GL_TEXTURE2);
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowMap);
     for (Map.Entry<TexturedModel, List<Entity>> entry : entities.entrySet()) {
       final TexturedModel model = entry.getKey();
       final RawModel rawModel = model.getRawModel();
