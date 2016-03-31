@@ -1,5 +1,6 @@
 package net.seabears.game;
 
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.IntStream.range;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -82,8 +83,10 @@ import net.seabears.game.textures.TerrainTexturePack;
 import net.seabears.game.util.DayNightCycle;
 import net.seabears.game.util.FpsCalc;
 import net.seabears.game.util.FpsCounter;
+import net.seabears.game.util.Frustum;
 import net.seabears.game.util.ObjFileLoader;
 import net.seabears.game.util.ProjectionMatrix;
+import net.seabears.game.util.ViewMatrix;
 import net.seabears.game.util.Volume;
 import net.seabears.game.util.normalmap.NormalMappedObjFileLoader;
 import net.seabears.game.water.Water;
@@ -317,9 +320,6 @@ public class Main {
     while (display.isRunning()) {
       // update timing
       fps.update();
-      if (fpsCount.update(fps.get())) {
-        display.setTitle("FPS: " + fpsCount.get());
-      }
 
       // move player
       player.move(mov, (x, z) -> Terrain.getHeight(terrains, x, z));
@@ -350,18 +350,46 @@ public class Main {
       // particles
       particles.update(system.generate(fps.get()), camera);
 
+      final Frustum frustum = new Frustum(camera, FOV, NEAR_PLANE, FAR_PLANE, display.getWidth() / display.getHeight());
+      List<Entity> entitiesInView = entities.stream()
+          .filter(e -> frustum.contains(e.getPosition(), 0.0f))
+          .collect(toCollection(LinkedList::new));
+      List<Entity> nmEntitiesInView = nmEntities.stream()
+          .filter(e -> frustum.contains(e.getPosition(), 0.0f))
+          .collect(toCollection(LinkedList::new));
+      List<WaterTile> waterTilesInView = waterTiles.stream()
+          .filter(w -> frustum.contains(new Vector3f(w.getX(), w.getHeight(), w.getZ()), Math.max(w.getSize().x, w.getSize().z) / (float) Math.cos(Math.PI * 0.25)))
+          .collect(toCollection(LinkedList::new));
+
       // render scene
-      renderer.renderShadowMap(entities, nmEntities, lights, display.getWidth(), display.getHeight());
-      final Consumer<Vector4f> renderAction = p -> renderer.render(entities, nmEntities, terrains, lights, skybox, camera, p);
+      renderer.renderShadowMap(entitiesInView, nmEntitiesInView, lights, display.getWidth(), display.getHeight());
+      final Consumer<Vector4f> renderAction = p -> renderer.render(entitiesInView, nmEntitiesInView, terrains, lights, skybox, camera, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
       renderAction.accept(HIGH_PLANE);
-      waterRenderer.render(waterTiles, lights, camera);
+      waterRenderer.render(waterTilesInView, lights, camera);
       particleRenderer.render(particles.getParticles(), camera);
       guiRenderer.render(guis);
       textMaster.render();
 
-      // I don't know if the stuff in here is necessary
+      // update the screen
       display.update();
+
+      // update rendering statistics
+      if (fpsCount.update(fps.get())) {
+        int renderedEntities = entitiesInView.size() + nmEntitiesInView.size();
+        int renderedTerrains = terrains.size();
+        int renderedWaters = waterTilesInView.size();
+        display.setTitle(String.format("FPS: %d, Entities: %d, Terrain: %d, Water: %d",
+            fpsCount.get(), renderedEntities, renderedTerrains, renderedWaters));
+      }
+
+      if (dir.up.get()) {
+        frustum.printNormals();
+        frustum.printPoints();
+        frustum.print(camera.getPosition());
+        frustum.print(player.getPosition());
+        System.out.println(new ViewMatrix(camera).toMatrix());
+      }
     }
     return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
   }
