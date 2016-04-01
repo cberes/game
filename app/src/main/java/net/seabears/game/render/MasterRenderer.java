@@ -2,11 +2,11 @@ package net.seabears.game.render;
 
 import java.util.List;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
-import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.EntityRenderer;
 import net.seabears.game.entities.Light;
@@ -52,7 +52,7 @@ public class MasterRenderer {
       shadowRenderer.render(e.get(), lights.get(0), displayWidth, displayHeight);
   }
 
-  public void render(List<Entity> entities, List<Entity> nmEntities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Camera camera, Vector4f clippingPlane) {
+  public void render(List<Entity> entities, List<Entity> nmEntities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Matrix4f viewMatrix, Vector4f clippingPlane) {
     // prepare
     GL11.glEnable(GL11.GL_DEPTH_TEST);
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -66,7 +66,7 @@ public class MasterRenderer {
       entityRenderer.getShader().loadClippingPlane(clippingPlane);
       entityRenderer.getShader().loadLights(lights);
       entityRenderer.getShader().loadSky(skyColor);
-      entityRenderer.getShader().loadViewMatrix(camera);
+      entityRenderer.getShader().loadViewMatrix(viewMatrix);
       entityRenderer.getShader().loadShadows(shadowRenderer);
       entityRenderer.render(e.get(), shadowRenderer.getShadowMap());
       entityRenderer.getShader().stop();
@@ -78,9 +78,9 @@ public class MasterRenderer {
       e.addAll(nmEntities);
       nmRenderer.getShader().start();
       nmRenderer.getShader().loadClippingPlane(clippingPlane);
-      nmRenderer.getShader().loadLights(lights, camera);
+      nmRenderer.getShader().loadLights(lights, viewMatrix);
       nmRenderer.getShader().loadSky(skyColor);
-      nmRenderer.getShader().loadViewMatrix(camera);
+      nmRenderer.getShader().loadViewMatrix(viewMatrix);
       nmRenderer.getShader().loadShadows(shadowRenderer);
       nmRenderer.render(e.get(), shadowRenderer.getShadowMap());
       nmRenderer.getShader().stop();
@@ -91,7 +91,7 @@ public class MasterRenderer {
     terrainRenderer.getShader().loadClippingPlane(clippingPlane);
     terrainRenderer.getShader().loadLights(lights);
     terrainRenderer.getShader().loadSky(skyColor);
-    terrainRenderer.getShader().loadViewMatrix(camera);
+    terrainRenderer.getShader().loadViewMatrix(viewMatrix);
     terrainRenderer.getShader().loadShadows(shadowRenderer);
     terrainRenderer.render(terrains, shadowRenderer.getShadowMap());
     terrainRenderer.getShader().stop();
@@ -99,7 +99,7 @@ public class MasterRenderer {
     // skybox
     skyboxRenderer.getShader().start();
     skyboxRenderer.getShader().loadSky(skyColor);
-    skyboxRenderer.getShader().loadViewMatrix(camera);
+    skyboxRenderer.getShader().loadViewMatrix(viewMatrix);
     skyboxRenderer.render(skybox);
     skyboxRenderer.getShader().stop();
   }

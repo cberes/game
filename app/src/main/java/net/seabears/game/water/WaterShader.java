@@ -6,11 +6,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
-import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Light;
 import net.seabears.game.shaders.ShaderProgram;
-import net.seabears.game.util.ViewMatrix;
 
 public class WaterShader extends ShaderProgram {
   private final int lights;
@@ -101,8 +100,8 @@ public class WaterShader extends ShaderProgram {
     super.loadMatrix(locationProjectionMatrix, projection);
   }
 
-  public void loadViewMatrix(Camera camera) {
-    super.loadFloat(locationCameraPosition, camera.getPosition());
-    super.loadMatrix(locationViewMatrix, new ViewMatrix(camera).toMatrix());
+  public void loadViewMatrix(Vector3f cameraPosition, Matrix4f viewMatrix) {
+    super.loadFloat(locationCameraPosition, cameraPosition);
+    super.loadMatrix(locationViewMatrix, viewMatrix);
   }
 }

@@ -7,8 +7,6 @@ import java.util.Map;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import net.seabears.game.entities.Camera;
-
 public class Frustum {
   enum Plane {
     FAR, NEAR, TOP, BOTTOM, RIGHT, LEFT
@@ -17,11 +15,9 @@ public class Frustum {
   private final Map<Plane, Vector3f> normals;
   private final Map<Plane, Vector3f> points;
 
-  public Frustum(Camera camera, final float fov, final float near, final float far, final double aspectRatio) {
+  public Frustum(Vector3f cameraPosition, Matrix4f viewMatrix, final float fov, final float near, final float far, final double aspectRatio) {
     this.normals = new EnumMap<>(Plane.class);
     this.points = new EnumMap<>(Plane.class);
-    final Vector3f cameraPosition = camera.getPosition();
-    final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
 
     // get left, up, and look-at vectors from the view matrix
     // the view matrix seems to be twisted around a little from the way most people use it

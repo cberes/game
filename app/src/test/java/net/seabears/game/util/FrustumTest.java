@@ -2,6 +2,7 @@ package net.seabears.game.util;
 
 import static org.junit.Assert.*;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.junit.Test;
 
@@ -22,13 +23,14 @@ public class FrustumTest {
         final Player player = new Player(null, playerPosition, new Vector3f(), 0.5f, null, new Volume(5, 4), 0, 0, 0, 0);
         final Camera camera = new Camera(player);
         camera.move();
-        final Frustum frustum = new Frustum(camera, FOV, NEAR_PLANE, FAR_PLANE, WIDTH / HEIGHT);
+        final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
+        final Frustum frustum = new Frustum(camera.getPosition(), viewMatrix, FOV, NEAR_PLANE, FAR_PLANE, WIDTH / HEIGHT);
         System.out.println(frustum);
         System.out.println("Camera:");
         print(frustum, camera.getPosition());
         System.out.println("Player:");
         print(frustum, player.getPosition());
-        System.out.println(new ViewMatrix(camera).toMatrix());
+        System.out.println(viewMatrix);
         assertEquals(frustum.distance(Plane.LEFT, playerPosition), frustum.distance(Plane.RIGHT, playerPosition), 1E-5);
         assertTrue(frustum.contains(playerPosition, 0.0f));
         assertFalse(frustum.contains(camera.getPosition(), 0.0f));

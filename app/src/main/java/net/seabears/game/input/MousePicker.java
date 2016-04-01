@@ -9,7 +9,6 @@ import org.joml.Vector4f;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.terrains.Terrain;
-import net.seabears.game.util.ViewMatrix;
 
 public class MousePicker {
   private final MouseButton mouse;
@@ -28,9 +27,9 @@ public class MousePicker {
     return currentRay;
   }
 
-  public void update(int w, int h) {
+  public void update(int w, int h, Matrix4f viewMatrix) {
     if (mouse.isPressed()) {
-      currentRay.set(calculateMouseRay(w, h, new ViewMatrix(camera).toMatrix().invert()));
+      currentRay.set(calculateMouseRay(w, h, viewMatrix.invert(new Matrix4f())));
     }
   }
 

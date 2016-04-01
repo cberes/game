@@ -12,7 +12,6 @@ import org.joml.Vector4f;
 import net.seabears.game.shadows.ShadowShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
-import net.seabears.game.util.ViewMatrix;
 
 public class StaticShader extends ShadowShader {
   public static final int TEXTURE_SHADOW = 1;
@@ -98,10 +97,6 @@ public class StaticShader extends ShadowShader {
 
   public void loadTransformationMatrix(Matrix4f matrix) {
     super.loadMatrix(locationTransformationMatrix, matrix);
-  }
-
-  public void loadViewMatrix(Camera camera) {
-    loadViewMatrix(new ViewMatrix(camera).toMatrix());
   }
 
   public void loadViewMatrix(Matrix4f matrix) {

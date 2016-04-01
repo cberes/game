@@ -5,10 +5,8 @@ import java.io.IOException;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import net.seabears.game.entities.Camera;
 import net.seabears.game.shaders.ShaderProgram;
 import net.seabears.game.util.FpsCalc;
-import net.seabears.game.util.ViewMatrix;
 
 public class SkyboxShader extends ShaderProgram {
   private final FpsCalc fps;
@@ -59,10 +57,10 @@ public class SkyboxShader extends ShaderProgram {
     super.loadMatrix(locationProjectionMatrix, matrix);
   }
 
-  public void loadViewMatrix(Camera camera) {
+  public void loadViewMatrix(Matrix4f viewMatrix) {
     // clear these values so that no translation is performed
     // this keeps the skybox centered around the camera
-    Matrix4f matrix = new Matrix4f(new ViewMatrix(camera).toMatrix());
+    Matrix4f matrix = new Matrix4f(viewMatrix);
     matrix.m30 = 0;
     matrix.m31 = 0;
     matrix.m32 = 0;

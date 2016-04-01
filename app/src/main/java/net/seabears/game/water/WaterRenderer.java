@@ -1,7 +1,7 @@
 package net.seabears.game.water;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -19,6 +19,7 @@ import net.seabears.game.render.DisplayManager;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.util.TransformationMatrix;
+import net.seabears.game.util.ViewMatrix;
 
 public class WaterRenderer implements Renderer {
   private final RawModel quad;
@@ -47,28 +48,28 @@ public class WaterRenderer implements Renderer {
     return shader;
   }
 
-  public void preRender(List<WaterTile> water, List<Light> lights, Camera camera, DisplayManager display, Consumer<Vector4f> renderAction) {
+  public void preRender(List<WaterTile> water, List<Light> lights, Camera camera, DisplayManager display, BiConsumer<Matrix4f, Vector4f> renderAction) {
     // water
     if (!water.isEmpty()) {
       // water reflection
       fbs.bindReflection();
       final float distance = 2.0f * (camera.getPosition().y - water.get(0).getHeight());
       camera.moveForReflection(distance);
-      renderAction.accept(water.get(0).toReflectionPlane());
+      renderAction.accept(new ViewMatrix(camera).toMatrix(), water.get(0).toReflectionPlane());
       camera.undoReflectionMove(distance);
 
       // water refraction
       fbs.bindRefraction();
-      renderAction.accept(water.get(0).toRefractionPlane());
+      renderAction.accept(new ViewMatrix(camera).toMatrix(), water.get(0).toRefractionPlane());
 
       // unbind the buffer
       fbs.unbind(display.getWidth(), display.getHeight());
     }
   }
 
-  public void render(List<WaterTile> water, List<Light> lights, Camera camera) {
+  public void render(List<WaterTile> water, List<Light> lights, Matrix4f viewMatrix, Vector3f cameraPosition) {
     if (!water.isEmpty()) {
-      prepareRender(lights, camera);
+      prepareRender(lights, viewMatrix, cameraPosition);
       for (WaterTile tile : water) {
         shader.loadModelMatrix(new TransformationMatrix(new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), new Vector3f(), tile.getSize()).toMatrix());
         shader.loadTexture(tile.getWater());
@@ -78,10 +79,10 @@ public class WaterRenderer implements Renderer {
     }
   }
 
-  private void prepareRender(List<Light> lights, Camera camera) {
+  private void prepareRender(List<Light> lights, Matrix4f viewMatrix, Vector3f cameraPosition) {
     shader.start();
     shader.loadLights(lights);
-    shader.loadViewMatrix(camera);
+    shader.loadViewMatrix(cameraPosition, viewMatrix);
     GL30.glBindVertexArray(quad.getVaoId());
     GL20.glEnableVertexAttribArray(StaticShader.ATTR_POSITION);
     GL13.glActiveTexture(GL13.GL_TEXTURE0);

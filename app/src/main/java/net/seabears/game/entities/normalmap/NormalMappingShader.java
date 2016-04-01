@@ -9,13 +9,11 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.Light;
 import net.seabears.game.shadows.ShadowShader;
 import net.seabears.game.textures.ModelTexture;
 import net.seabears.game.util.TransformationMatrix;
-import net.seabears.game.util.ViewMatrix;
 
 public class NormalMappingShader extends ShadowShader {
   public static final int TEXTURE_SHADOW = 2;
@@ -72,8 +70,7 @@ public class NormalMappingShader extends ShadowShader {
     this.loadFloat(locationClippingPlane, plane);
   }
 
-  public void loadLights(final List<Light> lights, Camera camera) {
-    final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
+  public void loadLights(final List<Light> lights, Matrix4f viewMatrix) {
     range(0, this.lights)
         .forEach(i -> loadLight(i < lights.size() ? lights.get(i) : OFF_LIGHT, i, viewMatrix));
   }
@@ -115,10 +112,6 @@ public class NormalMappingShader extends ShadowShader {
 
   public void loadTransformationMatrix(Matrix4f matrix) {
     super.loadMatrix(locationTransformationMatrix, matrix);
-  }
-
-  public void loadViewMatrix(Camera camera) {
-    loadViewMatrix(new ViewMatrix(camera).toMatrix());
   }
 
   public void loadViewMatrix(Matrix4f matrix) {

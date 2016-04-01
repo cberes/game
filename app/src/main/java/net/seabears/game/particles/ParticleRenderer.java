@@ -15,12 +15,10 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
 
-import net.seabears.game.entities.Camera;
 import net.seabears.game.models.RawModel;
 import net.seabears.game.render.Loader;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.util.InsertionSort;
-import net.seabears.game.util.ViewMatrix;
 
 public class ParticleRenderer implements Renderer {
   private static final int INSTANCE_FLOATS = 21;
@@ -65,13 +63,12 @@ public class ParticleRenderer implements Renderer {
     return shader;
   }
 
-  public void render(Map<ParticleTexture, List<Particle>> particles, Camera camera) {
+  public void render(Map<ParticleTexture, List<Particle>> particles, Matrix4f viewMatrix) {
     if (particles.isEmpty()) {
       return;
     }
 
     // bind values that are the same for all particles
-    final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
     shader.start();
     GL30.glBindVertexArray(quad.getVaoId());
     range(0, attributes).forEach(GL20::glEnableVertexAttribArray);

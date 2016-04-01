@@ -17,8 +17,9 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -331,6 +332,7 @@ public class Main {
       currentScrolls.forEach(camera::zoom);
       camera.panTilt(panTilt.get());
       camera.move();
+      final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
 
       // update mouse picker after camera has moved
       // GUI picker to create new entities in the scene
@@ -340,7 +342,7 @@ public class Main {
         return Optional.empty();
       });
       // mouse picker to move the previously created entity
-      mousePicker.update(display.getWidth(), display.getHeight());
+      mousePicker.update(display.getWidth(), display.getHeight(), viewMatrix);
       if (!guiActive) {
         mousePicker.findTerrainPoint(terrains, MAX_TERRAIN_RANGE).flatMap(p -> {
           entities.get(entities.size() - 1).place(p);
@@ -353,7 +355,7 @@ public class Main {
       particles.update(system.generate(fps.get()), camera);
 
       // view-frustum culling
-      final Frustum frustum = new Frustum(camera, FOV, NEAR_PLANE, FAR_PLANE, display.getWidth() / display.getHeight());
+      final Frustum frustum = new Frustum(camera.getPosition(), viewMatrix, FOV, NEAR_PLANE, FAR_PLANE, display.getWidth() / display.getHeight());
       List<Entity> entitiesInView = entities.stream()
           .filter(e -> frustum.contains(e.getPosition(), 0.0f))
           .collect(toCollection(LinkedList::new));
@@ -373,11 +375,11 @@ public class Main {
       // render scene
       renderer.renderShadowMap(entitiesInView, nmEntitiesInView, lights, display.getWidth(), display.getHeight());
       // TODO some objects might be excluded when rendering water (because of frustum culling)
-      final Consumer<Vector4f> renderAction = p -> renderer.render(entitiesInView, nmEntitiesInView, terrainsInView, lights, skybox, camera, p);
+      final BiConsumer<Matrix4f, Vector4f> renderAction = (v, p) -> renderer.render(entitiesInView, nmEntitiesInView, terrainsInView, lights, skybox, v, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
-      renderAction.accept(HIGH_PLANE);
-      waterRenderer.render(waterTilesInView, lights, camera);
-      particleRenderer.render(ParticleMaster.sortParticles(particlesInView), camera);
+      renderAction.accept(viewMatrix, HIGH_PLANE);
+      waterRenderer.render(waterTilesInView, lights, viewMatrix, camera.getPosition());
+      particleRenderer.render(ParticleMaster.sortParticles(particlesInView), viewMatrix);
       guiRenderer.render(guis);
       textMaster.render();
 
@@ -394,7 +396,7 @@ public class Main {
       // display some debugging info
       if (dir.down.get()) {
         System.out.println(frustum);
-        System.out.println(new ViewMatrix(camera).toMatrix());
+        System.out.println(viewMatrix);
       }
     }
     return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
