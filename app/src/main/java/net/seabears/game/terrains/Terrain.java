@@ -11,8 +11,9 @@ import net.seabears.game.render.Loader;
 import net.seabears.game.textures.TerrainTexture;
 import net.seabears.game.textures.TerrainTexturePack;
 import net.seabears.game.util.Barycentric;
+import net.seabears.game.util.Tile;
 
-public class Terrain {
+public class Terrain extends Tile {
   private final float size;
   private final float x, z;
   private final RawModel model;
@@ -25,6 +26,7 @@ public class Terrain {
   }
 
   public Terrain(float size, float x, float z, Loader loader, TerrainTexturePack texture, TerrainTexture blendMap, HeightGenerator heightGen) {
+    super(new Vector3f(x * size + (size * 0.5f), 0.0f, z * size + (size * 0.5f)), new Vector3f(size, 0.0f, size));
     this.size = size;
     this.x = x * size;
     this.z = z * size;

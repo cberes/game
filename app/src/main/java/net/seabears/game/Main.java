@@ -57,6 +57,7 @@ import net.seabears.game.input.MousePicker;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.input.Scroll;
 import net.seabears.game.models.TexturedModel;
+import net.seabears.game.particles.Particle;
 import net.seabears.game.particles.ParticleMaster;
 import net.seabears.game.particles.ParticleRenderer;
 import net.seabears.game.particles.ParticleShader;
@@ -347,9 +348,11 @@ public class Main {
         });
       }
       // TODO something something to resize and rotate the selected entity
+
       // particles
       particles.update(system.generate(fps.get()), camera);
 
+      // view-frustum culling
       final Frustum frustum = new Frustum(camera, FOV, NEAR_PLANE, FAR_PLANE, display.getWidth() / display.getHeight());
       List<Entity> entitiesInView = entities.stream()
           .filter(e -> frustum.contains(e.getPosition(), 0.0f))
@@ -357,17 +360,24 @@ public class Main {
       List<Entity> nmEntitiesInView = nmEntities.stream()
           .filter(e -> frustum.contains(e.getPosition(), 0.0f))
           .collect(toCollection(LinkedList::new));
+      List<Particle> particlesInView = particles.getParticles().stream()
+          .filter(p -> frustum.contains(p.getPosition(), 0.0f))
+          .collect(toCollection(LinkedList::new));
+      List<Terrain> terrainsInView = terrains.stream()
+          .filter(t -> frustum.contains(t.getPosition(), t.getRadius()))
+          .collect(toCollection(LinkedList::new));
       List<WaterTile> waterTilesInView = waterTiles.stream()
-          .filter(w -> frustum.contains(new Vector3f(w.getX(), w.getHeight(), w.getZ()), Math.max(w.getSize().x, w.getSize().z) / (float) Math.cos(Math.PI * 0.25)))
+          .filter(w -> frustum.contains(w.getPosition(), w.getRadius()))
           .collect(toCollection(LinkedList::new));
 
       // render scene
       renderer.renderShadowMap(entitiesInView, nmEntitiesInView, lights, display.getWidth(), display.getHeight());
-      final Consumer<Vector4f> renderAction = p -> renderer.render(entitiesInView, nmEntitiesInView, terrains, lights, skybox, camera, p);
+      // TODO some objects might be excluded when rendering water (because of frustum culling)
+      final Consumer<Vector4f> renderAction = p -> renderer.render(entitiesInView, nmEntitiesInView, terrainsInView, lights, skybox, camera, p);
       waterRenderer.preRender(waterTiles, lights, camera, display, renderAction);
       renderAction.accept(HIGH_PLANE);
       waterRenderer.render(waterTilesInView, lights, camera);
-      particleRenderer.render(particles.getParticles(), camera);
+      particleRenderer.render(ParticleMaster.sortParticles(particlesInView), camera);
       guiRenderer.render(guis);
       textMaster.render();
 
@@ -376,14 +386,13 @@ public class Main {
 
       // update rendering statistics
       if (fpsCount.update(fps.get())) {
-        int renderedEntities = entitiesInView.size() + nmEntitiesInView.size();
-        int renderedTerrains = terrains.size();
-        int renderedWaters = waterTilesInView.size();
-        display.setTitle(String.format("FPS: %d, Entities: %d, Terrain: %d, Water: %d",
-            fpsCount.get(), renderedEntities, renderedTerrains, renderedWaters));
+        display.setTitle(String.format("FPS: %d, Entities: %d, Particles: %d, Terrain: %d, Water: %d",
+            fpsCount.get(), entitiesInView.size() + nmEntitiesInView.size(), particlesInView.size(),
+            terrainsInView.size(), waterTilesInView.size()));
       }
 
-      if (dir.up.get()) {
+      // display some debugging info
+      if (dir.down.get()) {
         System.out.println(frustum);
         System.out.println(new ViewMatrix(camera).toMatrix());
       }

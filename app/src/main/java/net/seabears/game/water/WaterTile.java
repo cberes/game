@@ -3,18 +3,14 @@ package net.seabears.game.water;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-public class WaterTile {
+import net.seabears.game.util.Tile;
+
+public class WaterTile extends Tile {
   private final Water water;
-  private final float height;
-  private final float x, z;
-  private final Vector3f size;
 
   public WaterTile(Water water, float centerX, float centerZ, float height, float sizeX, float sizeZ) {
+    super(new Vector3f(centerX, height, centerZ), new Vector3f(sizeX, 0.0f, sizeZ));
     this.water = water;
-    this.x = centerX;
-    this.z = centerZ;
-    this.height = height;
-    this.size = new Vector3f(sizeX, 1.0f, sizeZ);
   }
 
   public Water getWater() {
@@ -22,28 +18,24 @@ public class WaterTile {
   }
 
   public float getHeight() {
-    return height;
+    return getPosition().y;
   }
 
   public float getX() {
-    return x;
+    return getPosition().x;
   }
 
   public float getZ() {
-    return z;
-  }
-
-  public Vector3f getSize() {
-    return size;
+    return getPosition().z;
   }
 
   public Vector4f toReflectionPlane() {
     // add a small offset to avoid visible water edges
-    return new Vector4f(0.0f, 1.0f, 0.0f, -height + 0.5f);
+    return new Vector4f(0.0f, 1.0f, 0.0f, -getPosition().y + 0.5f);
   }
 
   public Vector4f toRefractionPlane() {
     // add a small offset to avoid visible water edges
-    return new Vector4f(0.0f, -1.0f, 0.0f, height + 0.5f);
+    return new Vector4f(0.0f, -1.0f, 0.0f, getPosition().y + 0.5f);
   }
 }

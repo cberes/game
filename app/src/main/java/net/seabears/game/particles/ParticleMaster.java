@@ -25,7 +25,11 @@ public class ParticleMaster {
     particles.addAll(0, toAdd);
   }
 
-  public Map<ParticleTexture, List<Particle>> getParticles() {
+  public List<Particle> getParticles() {
+    return particles;
+  }
+
+  public static Map<ParticleTexture, List<Particle>> sortParticles(List<Particle> particles) {
     final ParticlesByTexture byTexture = new ParticlesByTexture();
     byTexture.addAll(particles);
     return byTexture.get();
