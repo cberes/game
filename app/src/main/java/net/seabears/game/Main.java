@@ -384,10 +384,7 @@ public class Main {
       }
 
       if (dir.up.get()) {
-        frustum.printNormals();
-        frustum.printPoints();
-        frustum.print(camera.getPosition());
-        frustum.print(player.getPosition());
+        System.out.println(frustum);
         System.out.println(new ViewMatrix(camera).toMatrix());
       }
     }

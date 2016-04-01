@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Player;
+import net.seabears.game.util.Frustum.Plane;
 
 public class FrustumTest {
     private static final float FOV = 70.0f;
@@ -22,17 +23,20 @@ public class FrustumTest {
         final Camera camera = new Camera(player);
         camera.move();
         final Frustum frustum = new Frustum(camera, FOV, NEAR_PLANE, FAR_PLANE, WIDTH / HEIGHT);
-        System.out.println("Normals:");
-        frustum.printNormals();
-        System.out.println("Points:");
-        frustum.printPoints();
+        System.out.println(frustum);
         System.out.println("Camera:");
-        frustum.print(camera.getPosition());
+        print(frustum, camera.getPosition());
         System.out.println("Player:");
-        frustum.print(player.getPosition());
+        print(frustum, player.getPosition());
         System.out.println(new ViewMatrix(camera).toMatrix());
-        assertEquals(frustum.distanceRight(playerPosition), frustum.distanceLeft(playerPosition), 1E-5);
+        assertEquals(frustum.distance(Plane.LEFT, playerPosition), frustum.distance(Plane.RIGHT, playerPosition), 1E-5);
         assertTrue(frustum.contains(playerPosition, 0.0f));
         assertFalse(frustum.contains(camera.getPosition(), 0.0f));
+    }
+
+    private static void print(Frustum f, Vector3f pos) {
+        for (Plane p : Plane.values()) {
+            System.out.println(p + ":\t" + f.distance(p, pos));
+        }
     }
 }
