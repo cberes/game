@@ -1,0 +1,13 @@
+#version 140
+
+uniform sampler2D particleTexture;
+
+in float blend;
+in vec2 textureCoords;
+in vec2 textureCoordsNext;
+
+out vec4 out_color;
+
+void main(void) {
+	out_color = mix(texture(particleTexture, textureCoords), texture(particleTexture, textureCoordsNext), blend);
+}

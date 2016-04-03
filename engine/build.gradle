@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+description = 'video-game engine'
+version = '1.0'
+
+sourceCompatibility = 1.8
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Game Engine',
+                   'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+project.ext.lwjglVersion = '3.0.0b'
+
+dependencies {
+    compile "org.lwjgl:lwjgl:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-linux"
+    compile "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-osx"
+    compile "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-windows"
+    compile "org.l33tlabs.twl:pngdecoder:1.0"
+    compile "org.joml:joml:1.7.2-SNAPSHOT"
+    compile fileTree(dir: 'lib', include: '*.jar')
+    testCompile 'junit:junit:4.12'
+}

@@ -1,3 +1,5 @@
 rootProject.name = 'game'
 include ':app'
+include ':engine'
+include ':world-editor'
 

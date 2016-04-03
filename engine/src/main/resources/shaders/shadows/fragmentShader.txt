@@ -1,0 +1,15 @@
+#version 140
+
+uniform sampler2D modelTexture;
+
+in vec2 pass_textureCoords;
+
+out vec4 out_color;
+
+void main(void){
+	float alpha = texture(modelTexture, pass_textureCoords).a;
+	if (alpha < 0.5) {
+		discard;
+	}
+	out_color = vec4(1.0);
+}

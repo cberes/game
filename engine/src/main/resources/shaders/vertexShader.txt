@@ -1,0 +1,64 @@
+#version 140
+
+const float density = 0.0035;
+const float gradient = 5.0;
+
+uniform vec3 lightPosition[4];
+uniform mat4 projectionMatrix;
+uniform mat4 transformationMatrix;
+uniform mat4 viewMatrix;
+uniform float fakeLighting;
+uniform float textureRows;
+uniform vec2 textureOffset;
+uniform vec4 clippingPlane;
+
+// shadow uniforms
+uniform mat4 toShadowMapSpace;
+uniform float shadowDistance;
+uniform float transitionDistance;
+
+in vec3 position;
+in vec2 textureCoords;
+in vec3 normal;
+
+out vec2 pass_textureCoords;
+out vec3 toCameraVector;
+out vec3 surfaceNormal;
+out vec3 toLightVector[4];
+out float visibility;
+out vec4 shadowCoords;
+
+void main(void) {
+	// move vertices relative to world origin (world coordinates)
+	vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
+	// specify plane for culling
+	gl_ClipDistance[0] = dot(worldPosition, clippingPlane);
+	// move vertices relative to the camera (eye space)
+	vec4 positionRelativeToCamera = viewMatrix * worldPosition;
+	// add perspective (scale distance objects, give world a frustrum shape)
+	gl_Position = projectionMatrix * positionRelativeToCamera;
+
+	// Then, OpenGL converts coordinates to its space (perspective division)
+	// Finally, OpenGL converts those coordinates to 2D pixels on the screen (viewport)
+
+	pass_textureCoords = textureCoords / textureRows + textureOffset;
+
+	vec3 realNormal = normal;
+	if (fakeLighting > 0.5) {
+		realNormal = vec3(0.0, 1.0, 0.0);
+	}
+
+	surfaceNormal = (transformationMatrix * vec4(realNormal, 0.0)).xyz;
+	for (int i = 0; i < 4; ++i) {
+		toLightVector[i] = lightPosition[i] - worldPosition.xyz;
+	}
+	toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+
+	float distance = length(positionRelativeToCamera.xyz);
+	visibility = clamp(exp(-pow(distance * density, gradient)), 0.0, 1.0);
+
+	// shadow calculations
+	shadowCoords = toShadowMapSpace * worldPosition;
+	distance = (distance - shadowDistance + transitionDistance) / transitionDistance;
+	shadowCoords.w = clamp(1.0 - distance, 0.0, 1.0);
+}

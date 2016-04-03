@@ -1,0 +1,19 @@
+#version 140
+
+uniform sampler2D textureSampler;
+
+in vec2 pass_textureCoords;
+
+out vec4 out_Color;
+
+void main(void) {
+	// simple means of transparency useful for objects that are either fully transparent or fully opaque
+	// but apparently it's not efficient?
+	vec4 textureColor = texture(textureSampler, pass_textureCoords);
+	if (textureColor.a < 0.5) {
+		discard;
+	}
+
+	// limit diffuse color to minimum of 0.2 for ambient lighting
+	out_Color = textureColor;
+}

@@ -1,0 +1,13 @@
+#version 140
+
+uniform mat4 mvpMatrix;
+
+in vec3 position;
+in vec2 textureCoords;
+
+out vec2 pass_textureCoords;
+
+void main(void){
+	pass_textureCoords = textureCoords;
+	gl_Position = mvpMatrix * vec4(position, 1.0);
+}
