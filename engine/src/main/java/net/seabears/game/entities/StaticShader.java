@@ -32,7 +32,7 @@ public class StaticShader extends ShadowShader {
   private int locationViewMatrix;
 
   public StaticShader(int lights) throws IOException {
-    super(SHADER_ROOT, TEXTURE_SHADOW);
+    super(SHADER_ROOT + "static/", TEXTURE_SHADOW);
     this.lights = lights;
   }
 

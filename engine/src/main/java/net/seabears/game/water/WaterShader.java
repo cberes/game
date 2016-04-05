@@ -30,6 +30,7 @@ public class WaterShader extends ShaderProgram {
   private int locationRefractionTexture;
   private int locationReflectivity;
   private int locationShineDamper;
+  private int locationSkyColor;
 
   public WaterShader(int lights) throws IOException {
     super(SHADER_ROOT + "water/");
@@ -60,6 +61,7 @@ public class WaterShader extends ShaderProgram {
     locationRefractionTexture = super.getUniformLocation("refractionTexture");
     locationReflectivity = super.getUniformLocation("reflectivity");
     locationShineDamper = super.getUniformLocation("shineDamper");
+    locationSkyColor = super.getUniformLocation("skyColor");
   }
 
   public void loadPlanes(float near, float far) {
@@ -75,6 +77,10 @@ public class WaterShader extends ShaderProgram {
     super.loadFloat(locationLightAttenuation[index], light.getAttenuation());
     super.loadFloat(locationLightColor[index], light.getColor());
     super.loadFloat(locationLightPosition[index], light.getPosition());
+  }
+
+  public void loadSky(Vector3f color) {
+    super.loadFloat(locationSkyColor, color);
   }
 
   public void loadTexture(Water water) {

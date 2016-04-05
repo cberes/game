@@ -28,7 +28,7 @@ public class WaterRenderer implements Renderer {
   private final int dudvMapId;
   private final int normalMapId;
 
-  public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId, int normalMapId, float nearPlane, float farPlane) {
+  public WaterRenderer(Loader loader, Vector3f skyColor, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbs, int dudvMapId, int normalMapId, float nearPlane, float farPlane) {
     // Just x and z vertex positions here: y is set to 0 in vertex shader
     float[] vertices = {-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1};
     this.quad = loader.loadToVao(vertices, 2, null);
@@ -41,6 +41,7 @@ public class WaterRenderer implements Renderer {
     this.shader.loadWater();
     this.shader.loadPlanes(nearPlane, farPlane);
     this.shader.loadProjectionMatrix(projectionMatrix);
+    this.shader.loadSky(skyColor);
     this.shader.stop();
   }
 

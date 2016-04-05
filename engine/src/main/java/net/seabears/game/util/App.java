@@ -213,7 +213,7 @@ public abstract class App {
     final FrameBuffer reflection = new FrameBuffer(WATER_REFLECTION_WIDTH, WATER_REFLECTION_HEIGHT, display.getWidth(), display.getHeight(), true);
     final FrameBuffer refraction = new FrameBuffer(WATER_REFRACTION_WIDTH, WATER_REFRACTION_HEIGHT, display.getWidth(), display.getHeight(), false);
     final WaterFrameBuffers waterFbs = new WaterFrameBuffers(reflection, refraction);
-    final WaterRenderer waterRenderer = new WaterRenderer(loader,
+    final WaterRenderer waterRenderer = new WaterRenderer(loader, skyColor,
         new WaterShader(MAX_LIGHTS), projMatrix.toMatrix(),
         waterFbs, loader.loadTexture("water/dudv"),
         loader.loadTexture("water/normal"),
