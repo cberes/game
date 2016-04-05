@@ -1,22 +1,7 @@
 package net.seabears.game.util;
 
 import static java.util.stream.Collectors.toCollection;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 
 import java.io.IOException;
@@ -26,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.BiConsumer;
@@ -56,11 +40,10 @@ import net.seabears.game.guis.fonts.FontRenderer;
 import net.seabears.game.guis.fonts.FontShader;
 import net.seabears.game.guis.fonts.GuiText;
 import net.seabears.game.guis.fonts.TextMaster;
+import net.seabears.game.input.ActionKeys;
 import net.seabears.game.input.CameraPanTilt;
 import net.seabears.game.input.DirectionKeys;
-import net.seabears.game.input.GuiPicker;
 import net.seabears.game.input.MouseButton;
-import net.seabears.game.input.MousePicker;
 import net.seabears.game.input.MovementKeys;
 import net.seabears.game.input.Scroll;
 import net.seabears.game.particles.Particle;
@@ -91,7 +74,6 @@ public abstract class App {
   public static final float SKYBOX_SIZE = 500.0f;
   public static final int MAX_LIGHTS = 4;
 
-  private static final float MAX_TERRAIN_RANGE = 600.0f;
   private static final Vector4f HIGH_PLANE = new Vector4f(0.0f, 1.0f, 0.0f, -1000.0f);
   private static final int MAX_PARTICLES = 10000;
   private static final int SHADOW_MAP_SIZE = 4096;
@@ -105,24 +87,30 @@ public abstract class App {
   private final float nearPlane;
   private final float farPlane;
   private final Vector3f skyColor;
+  private final ActionKeys actions;
+  private final DirectionKeys directions;
+  private final MovementKeys movement;
+  private final BlockingQueue<Scroll> scrolls;
 
   public App(float fov, float nearPlane, float farPlane, Vector3f skyColor) {
     this.fov = fov;
     this.nearPlane = nearPlane;
     this.farPlane = farPlane;
     this.skyColor = skyColor;
+    // TODO refactor this dependency inversion
+    this.actions = new ActionKeys();
+    this.directions = new DirectionKeys();
+    this.movement = new MovementKeys();
+    this.scrolls = new LinkedBlockingDeque<>();
   }
 
   public void run() {
-    final DirectionKeys dirKeys = new DirectionKeys();
-    final MovementKeys movKeys = new MovementKeys();
-    final BlockingQueue<Scroll> scrolls = new LinkedBlockingDeque<>();
     final Loader loader = new Loader();
     final List<Renderer> renderers = new ArrayList<>();
     try (DisplayManager display = new DisplayManager("Game Engine", 800, 600)) {
       final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight(), MouseButton.RIGHT);
-      init(display, dirKeys, movKeys, scrolls, panTilt);
-      renderers.addAll(loop(display, loader, dirKeys, movKeys, scrolls, panTilt));
+      init(display, panTilt);
+      renderers.addAll(loop(display, loader, panTilt));
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
@@ -131,6 +119,8 @@ public abstract class App {
       loader.close();
     }
   }
+
+  protected abstract Camera getCamera();
 
   protected abstract Player getPlayer();
 
@@ -164,9 +154,23 @@ public abstract class App {
     return v -> Optional.empty();
   }
 
+  protected ActionKeys getActions() {
+    return actions;
+  }
+
+  protected DirectionKeys getDirections() {
+    return directions;
+  }
+
+  protected MovementKeys getMovement() {
+    return movement;
+  }
+
+  protected void update(DisplayManager display, Matrix4f viewMatrix, float secondsDelta) {};
+
   protected void close() {};
 
-  private List<Renderer> loop(final DisplayManager display, final Loader loader, final DirectionKeys dir, final MovementKeys mov, final BlockingQueue<Scroll> scrolls, final CameraPanTilt panTilt) throws IOException {
+  private List<Renderer> loop(final DisplayManager display, final Loader loader, final CameraPanTilt panTilt) throws IOException {
     // frame-rate stuff
     final FpsCalc fps = new FpsCalc();
     final FpsCounter fpsCount = new FpsCounter();
@@ -179,7 +183,7 @@ public abstract class App {
      * player
      */
     final Player player = getPlayer();
-    final Camera camera = new Camera(player);
+    final Camera camera = getCamera();
 
     /*
      * rendering
@@ -225,10 +229,6 @@ public abstract class App {
     final TextMaster textMaster = new TextMaster(loader, new FontRenderer(new FontShader()));
     getGuiText().forEach(textMaster::load);
 
-    // pickers
-    final MousePicker mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix.toMatrix());
-    final GuiPicker guiPicker = new GuiPicker(MouseButton.LEFT, mousePicker, getMenuGuis());
-
     // Run the rendering loop until the user has attempted to close
     // the window or has pressed the ESCAPE key.
     final List<Scroll> currentScrolls = new LinkedList<>();
@@ -237,7 +237,7 @@ public abstract class App {
       fps.update();
 
       // move player
-      player.move(mov, (x, z) -> Terrain.getHeight(getTerrain(), x, z));
+      player.move(movement, (x, z) -> Terrain.getHeight(getTerrain(), x, z));
 
       // move camera (after player)
       currentScrolls.clear();
@@ -247,19 +247,8 @@ public abstract class App {
       camera.move();
       final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
 
-      // update mouse picker after camera has moved
-      // GUI picker to create new entities in the scene
-      final boolean guiActive = guiPicker.update(display.getWidth(), display.getHeight());
-      guiPicker.getSelection().flatMap(getGuiAction());
-      // mouse picker to move the previously created entity
-      mousePicker.update(display.getWidth(), display.getHeight(), viewMatrix);
-      if (!guiActive) {
-        mousePicker.findTerrainPoint(getTerrain(), MAX_TERRAIN_RANGE).flatMap(p -> {
-          getEntities().get(getEntities().size() - 1).place(p);
-          return Optional.empty();
-        });
-      }
-      // TODO something something to resize and rotate the selected entity
+      // let subclass update after camera and player have moved
+      update(display, viewMatrix, fps.get());
 
       // particles
       particles.update(camera);
@@ -307,7 +296,7 @@ public abstract class App {
       }
 
       // display some debugging info
-      if (dir.down.get()) {
+      if (actions.debug.get()) {
         System.out.println(frustum);
         System.out.println(viewMatrix);
       }
@@ -316,7 +305,7 @@ public abstract class App {
     return Arrays.asList(textMaster, guiRenderer, waterRenderer, entityRenderer, nmRenderer, particleRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
   }
 
-  private void init(final DisplayManager display, final DirectionKeys dir, final MovementKeys mov, final Queue<Scroll> scrolls, final CameraPanTilt panTilt) {
+  private void init(final DisplayManager display, final CameraPanTilt panTilt) {
     /*
      * Keyboard callback
      */
@@ -328,40 +317,55 @@ public abstract class App {
           glfwSetWindowShouldClose(window, GL_TRUE);
         }
 
+        // modifiers
+        final boolean shift = (mods & GLFW_MOD_SHIFT) > 0;
+
         // whether key is pressed or held down
         final boolean active = action == GLFW_PRESS || action == GLFW_REPEAT;
 
         // directions
         if (key == GLFW_KEY_UP) {
-          dir.up.set(active);
+          directions.up.set(active);
         }
         if (key == GLFW_KEY_DOWN) {
-          dir.down.set(active);
+          directions.down.set(active);
         }
         if (key == GLFW_KEY_RIGHT) {
-          dir.right.set(active);
+          directions.right.set(active);
         }
         if (key == GLFW_KEY_LEFT) {
-          dir.left.set(active);
+          directions.left.set(active);
         }
 
         // movement
         if (key == GLFW_KEY_W) {
-          mov.forward.set(active);
+          movement.forward.set(active);
         }
         if (key == GLFW_KEY_S) {
-          mov.backward.set(active);
+          movement.backward.set(active);
         }
         if (key == GLFW_KEY_D) {
-          mov.right.set(active);
+          movement.right.set(active);
         }
         if (key == GLFW_KEY_A) {
-          mov.left.set(active);
+          movement.left.set(active);
         }
 
         // actions
         if (key == GLFW_KEY_SPACE) {
-          mov.jump.set(action == GLFW_PRESS);
+          movement.jump.set(action == GLFW_PRESS);
+        }
+        if (key == GLFW_KEY_BACKSPACE) {
+          actions.back.set(action == GLFW_PRESS);
+        }
+        if (key == GLFW_KEY_DELETE) {
+          actions.delete.set(action == GLFW_PRESS);
+        }
+        if (key == GLFW_KEY_E) {
+          actions.interact.set(action == GLFW_PRESS);
+        }
+        if (key == GLFW_KEY_GRAVE_ACCENT) {
+          actions.debug.set(action == GLFW_PRESS && shift);
         }
       }
     });

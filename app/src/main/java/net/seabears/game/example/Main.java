@@ -13,6 +13,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import net.seabears.game.entities.Camera;
 import net.seabears.game.entities.Entity;
 import net.seabears.game.entities.EntityLight;
 import net.seabears.game.entities.EntityTexture;
@@ -54,6 +55,7 @@ public class Main extends App {
   private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
   private static final int NUM_ENTITIES = 100;
 
+  private Camera camera;
   private Player player;
   private Skybox skybox;
   private final List<Entity> entities = new ArrayList<>();
@@ -118,6 +120,7 @@ public class Main extends App {
     final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
     player = new Player(new EntityTexture(playerModel), new Vector3f(), new Vector3f(), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
     player.place(position(800, 0, terrains));
+    camera = new Camera(player);
 
     /*
      * water
@@ -178,6 +181,11 @@ public class Main extends App {
     text.add(new GuiText("Winnie Land!", new Vector2f(0.0f, 0.0f), 1.0f, true, liberation, 3.0f,
         new TextAttr(new Vector3f(0.0f, 1.0f, 1.0f), 0.5f, 0.1f),
         new TextAttr(new Vector3f(1.0f, 0.0f, 1.0f), 0.4f, 0.5f, new Vector2f(0.006f))));
+  }
+
+  @Override
+  protected Camera getCamera() {
+    return camera;
   }
 
   @Override

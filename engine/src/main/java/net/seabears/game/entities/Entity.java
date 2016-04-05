@@ -9,7 +9,7 @@ public class Entity extends TextureAtlasItem {
   private final EntityTexture model;
   private final Vector3f position;
   private final Vector3f rotation;
-  private final float scale;
+  private float scale;
   private final EntityLight light;
 
   public Entity(EntityTexture model, Vector3f position, Vector3f rotation, float scale) {
@@ -49,8 +49,17 @@ public class Entity extends TextureAtlasItem {
     this.rotation.add(delta);
   }
 
+  public void increaseScale(float scale) {
+    // TODO should light scale as well?
+    this.scale += scale;
+  }
+
   public TexturedModel getModel() {
     return model.getModel();
+  }
+
+  public EntityTexture getTexture() {
+    return model;
   }
 
   public Vector2f getTextureOffset() {

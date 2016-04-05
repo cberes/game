@@ -27,6 +27,9 @@ import net.seabears.game.entities.SimpleShader;
 import net.seabears.game.guis.GuiBuilder;
 import net.seabears.game.guis.GuiTexture;
 import net.seabears.game.guis.fonts.GuiText;
+import net.seabears.game.input.GuiPicker;
+import net.seabears.game.input.MouseButton;
+import net.seabears.game.input.MousePicker;
 import net.seabears.game.models.TexturedModel;
 import net.seabears.game.particles.ParticleSystem;
 import net.seabears.game.render.DisplayManager;
@@ -55,9 +58,14 @@ public class Main extends App {
   private static final float GRAVITY = -32.0f;
   private static final Vector3f SKY_COLOR = new Vector3f(0.5f);
   private static final long DAY_LENGTH_MS = TimeUnit.HOURS.toMillis(1L);
+  private static final float MAX_TERRAIN_RANGE = 600.0f;
 
+  private Camera camera;
   private Player player;
   private Skybox skybox;
+  private GuiPicker guiPicker;
+  private MousePicker mousePicker;
+  private float debounce;
   private final List<Entity> entities = new ArrayList<>();
   private final List<Entity> nmEntities = new ArrayList<>();
   private final List<Terrain> terrains = new ArrayList<>();
@@ -66,6 +74,8 @@ public class Main extends App {
   private final Map<EntityTexture, GuiTexture> menuGuis = new HashMap<>();
   private final List<GuiTexture> guis = new ArrayList<>();
   private final List<FrameBuffer> fbs = new ArrayList<>();
+  private final Map<EntityTexture, Vector3f> savedRotation = new HashMap<>();
+  private final Map<EntityTexture, Float> savedScale = new HashMap<>();
 
   public Main() {
     super(FOV, NEAR_PLANE, FAR_PLANE, SKY_COLOR);
@@ -110,6 +120,7 @@ public class Main extends App {
     final TexturedModel playerModel = new TexturedModel(loader.loadToVao(ObjFileLoader.load("bunny")), new ModelTexture(loader.loadTexture("bunny"), 1.0f, 5.0f));
     player = new Player(new EntityTexture(playerModel), new Vector3f(), new Vector3f(), 0.5f, fps, new Volume(5, 4), 20.0f, 160.0f, -GRAVITY * 0.5f, GRAVITY);
     player.place(position(800, 0, terrains));
+    camera = new Camera(player);
 
     /*
      * water
@@ -161,10 +172,19 @@ public class Main extends App {
 
     // create final list of GUIs for the window
     guis.addAll(guiBuilder.getGuis().values());
+
+    // pickers
+    mousePicker = new MousePicker(MouseButton.LEFT, camera, projMatrix);
+    guiPicker = new GuiPicker(MouseButton.LEFT, mousePicker, getMenuGuis());
   }
 
   private static Vector3f position(float x, float z, List<Terrain> terrains) {
     return new Vector3f(x, Terrain.getHeight(terrains, x, z), z);
+  }
+
+  @Override
+  protected Camera getCamera() {
+    return camera;
   }
 
   @Override
@@ -236,6 +256,70 @@ public class Main extends App {
       entities.get(entities.size() - 1).place(p);
       return Optional.empty();
     };
+  }
+
+  @Override
+  protected void update(final DisplayManager display, final Matrix4f viewMatrix, final float secondsDelta) {
+    // GUI picker to create new entities in the scene
+    final boolean guiActive = guiPicker.update(display.getWidth(), display.getHeight());
+    guiPicker.getSelection().flatMap(t -> {
+      entities.add(new Entity(t, new Vector3f(), savedRotation.getOrDefault(t, new Vector3f()), savedScale.getOrDefault(t, 1.0f)));
+      return Optional.empty();
+    });
+
+    // mouse picker to move the previously created entity
+    mousePicker.update(display.getWidth(), display.getHeight(), viewMatrix);
+    if (!guiActive) {
+      mousePicker.findTerrainPoint(getTerrain(), MAX_TERRAIN_RANGE).flatMap(p -> {
+        entities.get(entities.size() - 1).place(p);
+        return Optional.empty();
+      });
+    }
+
+    // modify last entity
+    if (!entities.isEmpty()) {
+      final int index = entities.size() - 1;
+      boolean changed = false;
+
+      // scale
+      if (getDirections().up.get()) {
+        entities.get(index).increaseScale(1.0f * secondsDelta);
+        changed = true;
+      }
+      if (getDirections().down.get()) {
+        entities.get(index).increaseScale(-1.0f * secondsDelta);
+        changed = true;
+      }
+
+      // rotate
+      if (getDirections().right.get()) {
+        entities.get(index).increaseRotation(new Vector3f(0.0f, 10.0f * secondsDelta, 0.0f));
+        changed = true;
+      }
+      if (getDirections().left.get()) {
+        entities.get(index).increaseRotation(new Vector3f(0.0f, -10.0f * secondsDelta, 0.0f));
+        changed = true;
+      }
+
+      if (changed) {
+        final EntityTexture tex = entities.get(index).getTexture();
+        savedRotation.put(tex, entities.get(index).getRotation());
+        savedScale.put(tex, entities.get(index).getScale());
+      }
+
+      // remove
+      // TODO move button debouncing to a class
+      if (getActions().delete.get()) {
+        // delete at most one entity per second
+        if (debounce == 0.0f || secondsDelta + debounce >= 1.0f) {
+          entities.remove(index);
+          debounce = 0.0f;
+        }
+        debounce += secondsDelta;
+      } else {
+        debounce = 0.0f;
+      }
+    }
   }
 
   @Override
