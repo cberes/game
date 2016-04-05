@@ -19,14 +19,14 @@ import org.lwjgl.opengl.GL11;
 
 public class DisplayManager implements AutoCloseable {
   private final long window;
-  private final int width;
-  private final int height;
   private final GLFWErrorCallback errorCallback;
   private final GLFWFramebufferSizeCallback framebufferSizeCallback;
   private GLFWCursorPosCallback cursorPosCallback;
   private GLFWKeyCallback keyCallback;
   private GLFWMouseButtonCallback mouseButtonCallback;
   private GLFWScrollCallback scrollCallback;
+  private int width;
+  private int height;
 
   public DisplayManager(String title, int width, int height) {
     this.width = width;
@@ -51,7 +51,7 @@ public class DisplayManager implements AutoCloseable {
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
     // the window will stay hidden after creation
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-    // the window will be resizable
+    // the window will not be resizable
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
     // Create the window
@@ -93,6 +93,8 @@ public class DisplayManager implements AutoCloseable {
    */
   public void onResize(int framebufferWidth, int framebufferHeight) {
     glViewport(0, 0, framebufferWidth, framebufferHeight);
+    this.width = framebufferWidth;
+    this.height = framebufferHeight;
   }
 
   public void init() {

@@ -271,7 +271,9 @@ public class Main extends App {
     mousePicker.update(display.getWidth(), display.getHeight(), viewMatrix);
     if (!guiActive) {
       mousePicker.findTerrainPoint(getTerrain(), MAX_TERRAIN_RANGE).flatMap(p -> {
-        entities.get(entities.size() - 1).place(p);
+        if (!entities.isEmpty()) {
+          entities.get(entities.size() - 1).place(p);
+        }
         return Optional.empty();
       });
     }

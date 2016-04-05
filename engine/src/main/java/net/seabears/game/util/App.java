@@ -78,10 +78,12 @@ public abstract class App {
   private static final int MAX_PARTICLES = 10000;
   private static final int SHADOW_MAP_SIZE = 4096;
 
-  private static final int WATER_REFLECTION_WIDTH = 320;
-  private static final int WATER_REFLECTION_HEIGHT = 180;
-  private static final int WATER_REFRACTION_WIDTH = 1280;
-  private static final int WATER_REFRACTION_HEIGHT = 720;
+  private static final int SCREEN_WIDTH = 1280;
+  private static final int SCREEN_HEIGHT = 720;
+  private static final int WATER_REFLECTION_WIDTH = 640;
+  private static final int WATER_REFLECTION_HEIGHT = 360;
+  private static final int WATER_REFRACTION_WIDTH = SCREEN_WIDTH;
+  private static final int WATER_REFRACTION_HEIGHT = SCREEN_HEIGHT;
 
   private final float fov;
   private final float nearPlane;
@@ -107,7 +109,7 @@ public abstract class App {
   public void run() {
     final Loader loader = new Loader();
     final List<Renderer> renderers = new ArrayList<>();
-    try (DisplayManager display = new DisplayManager("Game Engine", 800, 600)) {
+    try (DisplayManager display = new DisplayManager("Game Engine", SCREEN_WIDTH, SCREEN_HEIGHT)) {
       final CameraPanTilt panTilt = new CameraPanTilt(display.getWidth(), display.getHeight(), MouseButton.RIGHT);
       init(display, panTilt);
       renderers.addAll(loop(display, loader, panTilt));

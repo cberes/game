@@ -77,7 +77,7 @@ public class Frustum {
       toString.append(plane.getKey()).append(": (").append(v.x).append(", ").append(v.y).append(", ").append(v.z).append(')').append(eol);
     }
     // print points
-    toString.append("Points:");
+    toString.append("Points:").append(eol);
     for (Map.Entry<Plane, Vector3f> plane : points.entrySet()) {
       final Vector3f p = plane.getValue();
       toString.append(plane.getKey()).append(": (").append(p.x).append(", ").append(p.y).append(", ").append(p.z).append(')').append(eol);
