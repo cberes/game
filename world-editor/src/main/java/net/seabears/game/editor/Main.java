@@ -262,19 +262,19 @@ public class Main extends App {
   protected void update(final DisplayManager display, final Matrix4f viewMatrix, final float secondsDelta) {
     // GUI picker to create new entities in the scene
     final boolean guiActive = guiPicker.update(display.getWidth(), display.getHeight());
-    guiPicker.getSelection().flatMap(t -> {
+    guiPicker.getSelection().map(t -> {
       entities.add(new Entity(t, new Vector3f(), savedRotation.getOrDefault(t, new Vector3f()), savedScale.getOrDefault(t, 1.0f)));
-      return Optional.empty();
+      return null;
     });
 
     // mouse picker to move the previously created entity
     mousePicker.update(display.getWidth(), display.getHeight(), viewMatrix);
     if (!guiActive) {
-      mousePicker.findTerrainPoint(getTerrain(), MAX_TERRAIN_RANGE).flatMap(p -> {
+      mousePicker.findTerrainPoint(getTerrain(), MAX_TERRAIN_RANGE).map(p -> {
         if (!entities.isEmpty()) {
           entities.get(entities.size() - 1).place(p);
         }
-        return Optional.empty();
+        return null;
       });
     }
 

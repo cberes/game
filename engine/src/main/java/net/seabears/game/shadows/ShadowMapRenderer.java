@@ -19,6 +19,7 @@ import net.seabears.game.render.FrameBuffer;
 import net.seabears.game.render.MasterRenderer;
 import net.seabears.game.render.Renderer;
 import net.seabears.game.shaders.ShaderProgram;
+import net.seabears.game.util.CameraOrientation;
 import net.seabears.game.util.TransformationMatrix;
 
 /**
@@ -85,8 +86,8 @@ public class ShadowMapRenderer implements Renderer {
    *        {@link TexturedModel} that all of the entities in that list use.
    * @param sun - the light acting as the sun in the scene.
    */
-  public void render(Map<TexturedModel, List<Entity>> entities, Light sun, int displayWidth, int displayHeight) {
-    shadowBox.update();
+  public void render(Map<TexturedModel, List<Entity>> entities, CameraOrientation c, Light sun, int displayWidth, int displayHeight) {
+    shadowBox.update(c);
     Vector3f sunPosition = sun.getPosition();
     Vector3f lightDirection = new Vector3f(-sunPosition.x, -sunPosition.y, -sunPosition.z);
     prepare(lightDirection, shadowBox);

@@ -201,8 +201,7 @@ public abstract class App {
     final Skybox skybox = getSkybox();
     final SkyboxRenderer skyboxRenderer = new SkyboxRenderer(loader, new SkyboxShader(fps, 1.0f),
         projMatrix.toMatrix(), SKYBOX_SIZE, skybox.getDayTextureId(), skybox.getNightTextureId());
-    final ShadowMapRenderer shadowRenderer = new ShadowMapRenderer(new ShadowMapShader(),
-        new ShadowBox(camera, fov, nearPlane, 150, 10, display.getWidth(), display.getHeight()),
+    final ShadowMapRenderer shadowRenderer = new ShadowMapRenderer(new ShadowMapShader(), new ShadowBox(150, 10),
         new FrameBuffer(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, display.getWidth(), display.getHeight()), 2);
     final MasterRenderer renderer = new MasterRenderer(skyColor, entityRenderer, nmRenderer, terrainRenderer, skyboxRenderer, shadowRenderer);
     final GuiRenderer guiRenderer = new GuiRenderer(loader, new GuiShader());
@@ -259,7 +258,8 @@ public abstract class App {
       final List<Light> lights = getLights();
 
       // view-frustum culling
-      final Frustum frustum = new Frustum(camera.getPosition(), viewMatrix, fov, nearPlane, farPlane, display.getWidth() / display.getHeight());
+      final CameraOrientation c = new CameraOrientation(camera.getPosition(), viewMatrix, fov, nearPlane, display.getWidth() / display.getHeight());
+      final Frustum frustum = new Frustum(c, nearPlane + farPlane);
       final List<Entity> entitiesInView = getEntities().stream()
           .filter(e -> frustum.contains(e.getPosition(), 0.0f))
           .collect(toCollection(LinkedList::new));
@@ -277,7 +277,7 @@ public abstract class App {
           .collect(toCollection(LinkedList::new));
 
       // render scene
-      renderer.renderShadowMap(entitiesInView, nmEntitiesInView, lights, display.getWidth(), display.getHeight());
+      renderer.renderShadowMap(entitiesInView, nmEntitiesInView, c, lights, display.getWidth(), display.getHeight());
       // TODO some objects might be excluded when rendering water (because of frustum culling)
       final BiConsumer<Matrix4f, Vector4f> renderAction = (v, p) -> renderer.render(entitiesInView, nmEntitiesInView, terrainsInView, lights, skybox, v, p);
       waterRenderer.preRender(waterTilesInView, lights, camera, display, renderAction);

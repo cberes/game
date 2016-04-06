@@ -16,6 +16,7 @@ import net.seabears.game.skybox.Skybox;
 import net.seabears.game.skybox.SkyboxRenderer;
 import net.seabears.game.terrains.Terrain;
 import net.seabears.game.terrains.TerrainRenderer;
+import net.seabears.game.util.CameraOrientation;
 
 public class MasterRenderer {
   public static void enableCulling() {
@@ -45,11 +46,11 @@ public class MasterRenderer {
     enableCulling();
   }
 
-  public void renderShadowMap(List<Entity> entities, List<Entity> nmEntities, List<Light> lights, int displayWidth, int displayHeight) {
+  public void renderShadowMap(List<Entity> entities, List<Entity> nmEntities, CameraOrientation c, List<Light> lights, int displayWidth, int displayHeight) {
       final EntitiesByTexture e = new EntitiesByTexture();
       e.addAll(entities);
       e.addAll(nmEntities);
-      shadowRenderer.render(e.get(), lights.get(0), displayWidth, displayHeight);
+      shadowRenderer.render(e.get(), c, lights.get(0), displayWidth, displayHeight);
   }
 
   public void render(List<Entity> entities, List<Entity> nmEntities, List<Terrain> terrains, List<Light> lights, Skybox skybox, Matrix4f viewMatrix, Vector4f clippingPlane) {

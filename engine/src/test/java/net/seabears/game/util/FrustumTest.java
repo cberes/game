@@ -24,7 +24,8 @@ public class FrustumTest {
         final Camera camera = new Camera(player);
         camera.move();
         final Matrix4f viewMatrix = new ViewMatrix(camera).toMatrix();
-        final Frustum frustum = new Frustum(camera.getPosition(), viewMatrix, FOV, NEAR_PLANE, FAR_PLANE, WIDTH / HEIGHT);
+        final CameraOrientation c = new CameraOrientation(camera.getPosition(), viewMatrix, FOV, NEAR_PLANE, WIDTH / HEIGHT);
+        final Frustum frustum = new Frustum(c, NEAR_PLANE + FAR_PLANE);
         System.out.println(frustum);
         System.out.println("Camera:");
         print(frustum, camera.getPosition());
